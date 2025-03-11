@@ -114,7 +114,7 @@ class TileManager:
         filepaths = [(filepath, path_manager.cropped_ortho_img_folder) for filepath in path_manager.cropped_ortho_folder.iterdir()]
 
         gdal.DontUseExceptions()
-        
+
         with Pool(processes=cpu_count()) as pool:
             list(tqdm(pool.imap(self.convert_one_tiff_to_png, filepaths), total=len(filepaths), desc=f"Processing {path_manager.cropped_ortho_folder.name}"))
 

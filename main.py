@@ -1,10 +1,12 @@
 import traceback
+from datetime import datetime
 from argparse import Namespace, ArgumentParser
 
 from src.utils.lib_tools import get_list_rasters
 from src.PathManager import PathManager
 from src.TileManager import TileManager
-
+from src.ModelManager import ModelManager
+from src.MosaicManager import MosaicManager
 
 def parse_args() -> Namespace:
 
@@ -30,7 +32,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--geojson_crs", default="EPSG:4326", help="Defaulting to WGS84 (likely for GeoJSON)")
 
     # Output.
-    parser.add_argument("-po" , "--path_output", default="./output2", help="Path of output")
+    parser.add_argument("-po" , "--path_output", default="./output", help="Path of output")
 
     # Optional arguments.
     parser.add_argument("-is", "--index_start", default="0", help="Choose from which index to start")
@@ -42,6 +44,7 @@ def main(opt: Namespace) -> None:
 
 
     tile_manager = TileManager(opt)
+    model_manager = ModelManager(opt)
 
     list_rasters = get_list_rasters(opt)
     index_start = int(opt.index_start) if opt.index_start.isnumeric() and int(opt.index_start) < len(list_rasters) else 0
@@ -53,24 +56,34 @@ def main(opt: Namespace) -> None:
         if not raster_path.is_file() or raster_path.suffix != ".tif": continue
 
         print(f"\n\n--- Working with {raster_path.stem}")        
+        t_start = datetime.now()
         path_manager = PathManager(opt.path_output, raster_path)
 
         # Clean if needed
         path_manager.clean() if opt.clean else path_manager.create_path()
 
         try:
-            tile_manager.split_ortho_into_tiles(path_manager)
+            if opt.clean or path_manager.is_empty_cropped_folder():
+                tile_manager.split_ortho_into_tiles(path_manager)
 
-            tile_manager.convert_tiff_tiles_into_png(path_manager)
+            if opt.clean or path_manager.is_empty_cropped_img_folder():
+                tile_manager.convert_tiff_tiles_into_png(path_manager)
 
-
-
+            if opt.clean or path_manager.is_empty_predictions_tiff_folder():
+                model_manager.inference(path_manager)
+            
+            mosaic_manager = MosaicManager(path_manager)
+            mosaic_manager.build_raster()
+            
         except Exception as e:
             print(traceback.format_exc(), end="\n\n")
             rasters_fail.append(raster_path.name)
         finally:
-            path_manager.disk_optimize()
-    
+            if opt.clean:
+                path_manager.disk_optimize() 
+
+        print(f"\n*\t Running time {datetime.now() - t_start}")
+
     # Stat
     print(f"\nEnd of process. On {len(list_rasters)} sessions, {len(rasters_fail)} fails.")
     if (len(rasters_fail)):
