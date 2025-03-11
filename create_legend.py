@@ -35,4 +35,4 @@ ax.set_yticks([])
 ax.set_frame_on(False)
 
 # Save legend as an image
-plt.savefig("legend.png", dpi=300, bbox_inches="tight")
+plt.savefig("gradient.png", dpi=300, bbox_inches="tight")

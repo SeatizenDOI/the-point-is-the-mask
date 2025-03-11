@@ -88,3 +88,8 @@ Use this file to gather your tiles : https://github.com/SeatizenDOI/tms-server/b
 Run `python merge_tiles.py -p /home/bioeos/Documents/project_hub/tms-server/bathy/tiles/`
 
 After you get your global_tile folder you can follow the [tms-server README](https://github.com/SeatizenDOI/tms-server/blob/master/README.md)
+
+
+## Runner
+
+python main.py -efol -c && docker run --rm -it --user 1000:1000 -v .:/app ghcr.io/osgeo/gdal:latest sh -c "cd /app && ./apply_gdal.sh"

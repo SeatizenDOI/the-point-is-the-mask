@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from tqdm import tqdm
 from pathlib import Path
@@ -51,8 +52,9 @@ class MosaicManager:
         # Get the total size of the mosaic
         height, width = origin_mosaic.shape[1], origin_mosaic.shape[2]
         intermediate_tile_height = MAX_PIXEL_PER_RASTER // width
+        nb_slice = math.ceil(height / intermediate_tile_height)
 
-        print(f"The final raster size is {origin_mosaic.shape}. It will be cut by slice of {intermediate_tile_height} pixels.")
+        print(f"The final raster size is {origin_mosaic.shape}. It will be cut by {nb_slice} slice of {intermediate_tile_height} pixels.")
 
         # Loop through and extract tiles
         mosaic_tiles = []
@@ -136,6 +138,11 @@ class MosaicManager:
     def create_final_rasters(self):
         print("*\t Create the final raster.")
         # Merge all the small tiles into a single large raster using rasterio.merge
+
+        if len(self.tmp_rasters_slice) == 1:
+            Path.rename(self.tmp_rasters_slice[0], self.path_manager.final_merged_tiff_file)
+            return
+        
         mosaic, out_trans = merge(self.tmp_rasters_slice, method="first")
 
         # Save the final merged raster

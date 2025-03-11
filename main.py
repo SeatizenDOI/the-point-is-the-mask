@@ -20,7 +20,7 @@ def parse_args() -> Namespace:
 
     # Path of input.
     parser.add_argument("-pfol", "--path_folder", default="/media/bioeos/E/drone/serge_ortho_tif", help="Path to folder of session")
-    parser.add_argument("-pses", "--path_session", default="/media/bioeos/E/drone/serge_ortho_tif/20231202_REU-TROU-DEAU_UAV-01_01_ortho.tif", help="Path to the session")
+    parser.add_argument("-pses", "--path_session", default="/media/bioeos/E/drone/serge_ortho_tif/20231201_REU-POINTE-DES-CHATEAUX_UAV-01_01_ortho.tif", help="Path to the session")
     parser.add_argument("-pcsv", "--path_csv_file", default=None, help="Path to the csv file")
 
     # Model arguments.
@@ -51,11 +51,11 @@ def main(opt: Namespace) -> None:
     list_rasters = list_rasters[index_start:]
 
     rasters_fail = []
-    for raster_path in list_rasters:
+    for i, raster_path in enumerate(list_rasters):
         # Filter all files who are not rasters files
         if not raster_path.is_file() or raster_path.suffix != ".tif": continue
 
-        print(f"\n\n--- Working with {raster_path.stem}")        
+        print(f"\n\n--- {i+1}/{len(list_rasters)} - Working with {raster_path.stem}")        
         t_start = datetime.now()
         path_manager = PathManager(opt.path_output, raster_path)
 
