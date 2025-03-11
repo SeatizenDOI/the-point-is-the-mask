@@ -1,5 +1,44 @@
 # Segmentation model
 
+
+6. **Troubleshooting:** if
+```bash
+Exception: Python bindings of GDAL 3.10.2 require at least libgdal 3.10.2, but 3.8.4 was found
+      [end of output] 
+```
+
+Use `sudo apt-get install libgdal-dev` to install libgdal.
+
+Then `sudo apt-get info libgdal-dev` to get the version.
+
+Mine is 3.8.4: 
+```
+Package: libgdal-dev
+Version: 3.8.4+dfsg-3ubuntu3
+Priority: extra
+Section: universe/libdevel
+Source: gdal
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+```
+
+Finally `pip install gdal==3.8.4`
+
+If `ImportError: /home/bioeos/miniconda3/envs/segmentation_env/bin/../lib/libstdc++.so.6: version 'GLIBCXX_3.4.30' not found (required by /lib/x86_64-linux-gnu/libgdal.so.34)`
+
+Use:
+
+`sudo find / -name libstdc++.so.6` to find your local file.
+
+`strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX` to check if the `version 'GLIBCXX_3.4.30'` is present.
+
+Then:
+```bash
+ln -sf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /home/bioeos/miniconda3/envs/segmentation_env/lib/libstdc++.so
+ln -sf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /home/bioeos/miniconda3/envs/segmentation_env/lib/libstdc++.so.6
+```
+
+
 ## Create your segmentatoin dataset.
 
 Gather all your raster in one folder.

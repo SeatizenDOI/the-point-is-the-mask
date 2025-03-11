@@ -1,0 +1,133 @@
+import json
+import pyproj
+import numpy as np
+from PIL import Image
+from tqdm import tqdm
+from osgeo import gdal
+from pathlib import Path
+from argparse import Namespace
+from multiprocessing import Pool, cpu_count
+
+import rasterio
+from rasterio.windows import Window
+from rasterio.transform import array_bounds
+
+from shapely.ops import transform
+from shapely.geometry import shape, box
+
+
+from .PathManager import PathManager
+
+NUM_WORKERS = max(1, cpu_count() - 2)  # Use available CPU cores, leaving some free
+
+class TileManager:
+
+    def __init__(self, opt: Namespace):
+        self.opt = opt
+        self.tile_size, self.hs, self.vs = 0, 0, 0
+        self.geojson_data, self.geojson_crs = None, ""
+
+        self.setup()
+
+    def setup(self) -> None:
+        self.tile_size = self.opt.tile_size
+        self.hs = int(self.tile_size * (1 - self.opt.horizontal_overlap)) # Horizontal step.
+        self.vs = int(self.tile_size * (1 - self.opt.vertical_overlap)) # Vertical step.
+
+        geojson_path = Path(self.opt.path_geojson)
+        if geojson_path.exists() and geojson_path.is_file():
+            with open(geojson_path, "r") as f:
+                self.geojson_data = json.load(f)
+        
+        if self.geojson_data == None:
+            raise NameError("Cannot find geojson data.")
+        
+        self.geojson_crs = self.opt.geojson_crs
+
+
+    def split_ortho_into_tiles(self, path_manager: PathManager) -> None:
+        print("*\t Splitting ortho into tiles.")
+        with rasterio.open(path_manager.raster_path) as ortho:
+
+            tile_coords = [
+                (path_manager, x, y)
+                for x in range(0, ortho.width - self.tile_size + 1, self.hs) 
+                for y in range(0, ortho.height - self.tile_size + 1, self.vs)
+            ]
+            
+        with Pool(NUM_WORKERS) as pool:
+            list(tqdm(pool.imap_unordered(self.extract_one_tile, tile_coords), total=len(tile_coords), desc=f"Processing {path_manager.raster_path.name}"))
+
+
+    def extract_one_tile(self, args: tuple[PathManager, int, int]) -> None:
+        path_manager, tile_x, tile_y = args
+
+        orthoname = path_manager.raster_path.stem.replace("_ortho", "")
+
+        with rasterio.open(path_manager.raster_path) as ortho:
+            raster_crs = ortho.crs.to_string()  # Get CRS of the raster
+            
+            # Reproject GeoJSON geometries to match raster CRS
+            project = pyproj.Transformer.from_crs(self.geojson_crs, raster_crs, always_xy=True).transform
+            geoms = [transform(project, shape(feature["geometry"])) for feature in self.geojson_data["features"]]
+            
+            window = Window(tile_x, tile_y, self.tile_size, self.tile_size)
+            tile_transform = rasterio.windows.transform(window, ortho.transform)
+
+            # Check if tile intersects with reprojected GeoJSON geometries
+            tile_bounds = box(*array_bounds(self.tile_size, self.tile_size, tile_transform))
+            if not any(tile_bounds.within(geom) for geom in geoms):
+                return  # Skip tile if it does not overlap with the area
+
+            # Read raster data
+            tile_ortho = ortho.read(window=window)
+
+            # Apply threshold to filter out mostly black or white tiles
+            greyscale_tile = np.sum(tile_ortho, axis=0) / 3
+            
+            # Black threshold.
+            percentage_black_pixel = np.sum(greyscale_tile == 0) * 100 / self.tile_size**2
+            if percentage_black_pixel > 5:
+                return
+
+            # White threshold.
+            percentage_white_pixel = np.sum(greyscale_tile == 255) * 100 / self.tile_size**2
+            if percentage_white_pixel > 10:
+                return        
+
+            tile_filename = f"{orthoname}_{tile_x}_{tile_y}.tif"
+            tile_output_path = Path(path_manager.cropped_ortho_folder, tile_filename)
+
+            tile_meta = ortho.meta.copy()
+            tile_meta.update({
+                "height": self.tile_size,
+                "width": self.tile_size,
+                "transform": tile_transform
+            })
+
+            with rasterio.open(tile_output_path, "w", **tile_meta) as dest:
+                dest.write(tile_ortho)
+
+    
+    def convert_tiff_tiles_into_png(self, path_manager: PathManager) -> None:
+        print("*\t Convert ortho tiff tiles into png files.")
+        filepaths = [(filepath, path_manager.cropped_ortho_img_folder) for filepath in path_manager.cropped_ortho_folder.iterdir()]
+
+        gdal.DontUseExceptions()
+        
+        with Pool(processes=cpu_count()) as pool:
+            list(tqdm(pool.imap(self.convert_one_tiff_to_png, filepaths), total=len(filepaths), desc=f"Processing {path_manager.cropped_ortho_folder.name}"))
+
+
+    def convert_one_tiff_to_png(self, filepath_output: tuple[Path, Path]) -> None:
+        filepath, output_dir = filepath_output
+        png_output_path = Path(output_dir, f'{filepath.stem}.png')
+        
+        with gdal.Open(str(filepath)) as src_ds:
+
+            raster_data = src_ds.ReadAsArray()
+            if raster_data.ndim == 3:
+                image = Image.fromarray(np.transpose(raster_data[:3], (1, 2, 0)).astype(np.uint8), mode="RGB")
+            else:
+                raise ValueError(f"Unexpected image format: {raster_data.shape}")
+            image.save(png_output_path)

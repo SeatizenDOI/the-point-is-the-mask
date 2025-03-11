@@ -5,4 +5,10 @@ dependencies:
   - python=3.12
   - pip=25.0
   - pip:
+    - gdal
+    - tqdm==4.67.1
     - pandas==2.2.3
+    - pyproj==3.7.1 
+    - shapely==2.0.7
+    - pillow==11.1.0
+    - rasterio==1.4.3

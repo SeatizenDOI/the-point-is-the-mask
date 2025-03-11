@@ -3,6 +3,8 @@ from argparse import Namespace, ArgumentParser
 
 from src.utils.lib_tools import get_list_rasters
 from src.PathManager import PathManager
+from src.TileManager import TileManager
+
 
 def parse_args() -> Namespace:
 
@@ -21,8 +23,12 @@ def parse_args() -> Namespace:
 
     # Model arguments.
     parser.add_argument("-psm", "--path_segmentation_model", default="segmentation_model/checkpoint-3807/", help="Path to semgentation model, currently only in local.") # TODO add remote parse
-     
-    
+    parser.add_argument("-pgeo", "--path_geojson", default="config/emprise_lagoon.geojson", help="Path to geojson to crop ortho inside area.")
+    parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0.5, help="Horizontal overlap between tiles.")
+    parser.add_argument("-vo", "--vertical_overlap", type=float, default=0.5, help="Vertical overlap between tiles.")
+    parser.add_argument("-ts", "--tile_size", type=int, default=512, help="Split Orthophoto into tiles.")
+    parser.add_argument("--geojson_crs", default="EPSG:4326", help="Defaulting to WGS84 (likely for GeoJSON)")
+
     # Output.
     parser.add_argument("-po" , "--path_output", default="./output2", help="Path of output")
 
@@ -33,7 +39,10 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 def main(opt: Namespace) -> None:
-    
+
+
+    tile_manager = TileManager(opt)
+
     list_rasters = get_list_rasters(opt)
     index_start = int(opt.index_start) if opt.index_start.isnumeric() and int(opt.index_start) < len(list_rasters) else 0
     list_rasters = list_rasters[index_start:]
@@ -42,14 +51,17 @@ def main(opt: Namespace) -> None:
     for raster_path in list_rasters:
         # Filter all files who are not rasters files
         if not raster_path.is_file() or raster_path.suffix != ".tif": continue
-        
-        path_manager = PathManager(opt.path_output, raster_path.stem)
+
+        print(f"\n\n--- Working with {raster_path.stem}")        
+        path_manager = PathManager(opt.path_output, raster_path)
 
         # Clean if needed
         path_manager.clean() if opt.clean else path_manager.create_path()
 
         try:
-            pass
+            tile_manager.split_ortho_into_tiles(path_manager)
+
+            tile_manager.convert_tiff_tiles_into_png(path_manager)
 
 
 
