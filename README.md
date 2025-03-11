@@ -1,7 +1,45 @@
-# Segmentation model
+<p align="center">
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/graphs/contributors"><img src="https://img.shields.io/github/contributors/SeatizenDOI/segmentation-inference" alt="GitHub contributors"></a>
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/network/members"><img src="https://img.shields.io/github/forks/SeatizenDOI/segmentation-inference" alt="GitHub forks"></a>
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/issues"><img src="https://img.shields.io/github/issues/SeatizenDOI/segmentation-inference" alt="GitHub issues"></a>
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/blob/master/LICENSE"><img src="https://img.shields.io/github/license/SeatizenDOI/segmentation-inference" alt="License"></a>
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/pulls"><img src="https://img.shields.io/github/issues-pr/SeatizenDOI/segmentation-inference" alt="GitHub pull requests"></a>
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/stargazers"><img src="https://img.shields.io/github/stars/SeatizenDOI/segmentation-inference" alt="GitHub stars"></a>
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/watchers"><img src="https://img.shields.io/github/watchers/SeatizenDOI/segmentation-inference" alt="GitHub watchers"></a>
+</p>
+<div align="center">
+  <a href="https://github.com/SeatizenDOI/segmentation-inference">View framework</a>
+  ·
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/issues">Report Bug</a>
+  ·
+  <a href="https://github.com/SeatizenDOI/segmentation-inference/issues">Request Feature</a>
+</div>
+
+<div align="center">
+
+# Segmentation Inference
+
+</div>
 
 
-6. **Troubleshooting:** if
+## Installation
+
+To ensure a consistent environment for all users, this project uses a Conda environment defined in a `requirements.yml` file. Follow these steps to set up your environment:
+
+1. **Install Conda:** If you do not have Conda installed, download and install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/products/distribution).
+
+2. **Dependencies:** You need to install `sudo apt-get install libgdal-dev`. You need to match the libgdal version with gdal pip package version.
+
+3. **Create the Conda Environment:** Navigate to the root of the project directory and run the following command to create a new environment from the `requirements.yml` file:
+   ```bash
+   conda env create -f requirements.yml
+   ```
+
+4. **Activate the Environment:** Once the environment is created, activate it using:
+   ```bash
+   conda activate segmentation_env
+   ```
+5. **Troubleshooting:** if
 ```bash
 Exception: Python bindings of GDAL 3.10.2 require at least libgdal 3.10.2, but 3.8.4 was found
       [end of output] 
@@ -39,15 +77,14 @@ ln -sf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /home/bioeos/miniconda3/envs/seg
 ```
 
 
-## Create your segmentatoin dataset.
+## Create your segmentation dataset.
 
-Gather all your raster in one folder.
+Launch gdal with : `docker run --rm -it --user 1000:1000 -v .:/app ghcr.io/osgeo/gdal:latest`
 
-Launch gdal with : `docker run --rm -it --user 1000:1000 -v ./output:/app ghcr.io/osgeo/gdal:latest`
-
-`gdaldem color-relief output/merged_prections/20231202_REU-TROU-DEAU_UAV-01_01_merged_predictions_color.tif color.txt output/merged_prections/20231202_REU-TROU-DEAU_UAV-01_01_merged_predictions_original_color.tif -alpha`
 and then go into /app and run `./apply_gdal.sh`
 
-
 Use this file to gather your tiles : https://github.com/SeatizenDOI/tms-server/blob/master/utils/merge_tiles.py
-Go into utils/ and run `python merge_tiles.py -p /home/bioeos/Documents/project_hub/tms-server/bathy/tiles/`
+
+Run `python merge_tiles.py -p /home/bioeos/Documents/project_hub/tms-server/bathy/tiles/`
+
+After you get your global_tile folder you can follow the [tms-server README](https://github.com/SeatizenDOI/tms-server/blob/master/README.md)
