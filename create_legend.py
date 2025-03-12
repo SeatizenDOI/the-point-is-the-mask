@@ -13,16 +13,16 @@ with open("color.txt", "r") as file:
 legend_data = {
     "1": "Acropora Branching", 
     "2": "Acropora Tabular",
-    "3": "Acropora SubMassive",
-    "4": "Other Coral",
-    "5": "Sand / Rubble",
+    "3": "Non Acropora Massive",
+    "4": "Non Acropora Submassive",
+    "5": "Sand",
 }
 
 # Create a figure
 fig, ax = plt.subplots(figsize=(5, len(legend_data) * 0.5))
 
 # Generate legend elements
-for i, (index, label) in enumerate(legend_data.items()):
+for i, (index, label) in enumerate(list(legend_data.items())[::-1]):
     color = np.array(color_dict.get(index)) / 255.0  # Normalize color to [0,1] range
     ax.add_patch(plt.Rectangle((0, i), 0.5, 1, color=color, ec="black"))
     ax.text(0.6, i + 0.5, label, va='center', fontsize=12)
