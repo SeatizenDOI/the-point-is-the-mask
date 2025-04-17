@@ -1,25 +1,27 @@
 <p align="center">
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/graphs/contributors"><img src="https://img.shields.io/github/contributors/SeatizenDOI/uav-segmentation-coral" alt="GitHub contributors"></a>
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/network/members"><img src="https://img.shields.io/github/forks/SeatizenDOI/uav-segmentation-coral" alt="GitHub forks"></a>
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/issues"><img src="https://img.shields.io/github/issues/SeatizenDOI/uav-segmentation-coral" alt="GitHub issues"></a>
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/blob/master/LICENSE"><img src="https://img.shields.io/github/license/SeatizenDOI/uav-segmentation-coral" alt="License"></a>
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/pulls"><img src="https://img.shields.io/github/issues-pr/SeatizenDOI/uav-segmentation-coral" alt="GitHub pull requests"></a>
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/stargazers"><img src="https://img.shields.io/github/stars/SeatizenDOI/uav-segmentation-coral" alt="GitHub stars"></a>
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/watchers"><img src="https://img.shields.io/github/watchers/SeatizenDOI/uav-segmentation-coral" alt="GitHub watchers"></a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/graphs/contributors"><img src="https://img.shields.io/github/contributors/SeatizenDOI/the-point-is-the-mask" alt="GitHub contributors"></a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/network/members"><img src="https://img.shields.io/github/forks/SeatizenDOI/the-point-is-the-mask" alt="GitHub forks"></a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/issues"><img src="https://img.shields.io/github/issues/SeatizenDOI/the-point-is-the-mask" alt="GitHub issues"></a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/blob/master/LICENSE"><img src="https://img.shields.io/github/license/SeatizenDOI/the-point-is-the-mask" alt="License"></a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/pulls"><img src="https://img.shields.io/github/issues-pr/SeatizenDOI/the-point-is-the-mask" alt="GitHub pull requests"></a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/stargazers"><img src="https://img.shields.io/github/stars/SeatizenDOI/the-point-is-the-mask" alt="GitHub stars"></a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/watchers"><img src="https://img.shields.io/github/watchers/SeatizenDOI/the-point-is-the-mask" alt="GitHub watchers"></a>
 </p>
 <div align="center">
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral">View framework</a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask">View framework</a>
   ·
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/issues">Report Bug</a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/issues">Report Bug</a>
   ·
-  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/issues">Request Feature</a>
+  <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/issues">Request Feature</a>
 </div>
 
 <div align="center">
 
-# UAV Segmentation Coral
+# The Point Is The Mask
 
 </div>
+
+Weakly Supervised Semantic Segmentation using UAV and ASV on coral reef.
 
 
 ## Installation
