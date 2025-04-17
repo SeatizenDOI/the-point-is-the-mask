@@ -1,23 +1,23 @@
 <p align="center">
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/graphs/contributors"><img src="https://img.shields.io/github/contributors/SeatizenDOI/segmentation-inference" alt="GitHub contributors"></a>
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/network/members"><img src="https://img.shields.io/github/forks/SeatizenDOI/segmentation-inference" alt="GitHub forks"></a>
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/issues"><img src="https://img.shields.io/github/issues/SeatizenDOI/segmentation-inference" alt="GitHub issues"></a>
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/blob/master/LICENSE"><img src="https://img.shields.io/github/license/SeatizenDOI/segmentation-inference" alt="License"></a>
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/pulls"><img src="https://img.shields.io/github/issues-pr/SeatizenDOI/segmentation-inference" alt="GitHub pull requests"></a>
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/stargazers"><img src="https://img.shields.io/github/stars/SeatizenDOI/segmentation-inference" alt="GitHub stars"></a>
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/watchers"><img src="https://img.shields.io/github/watchers/SeatizenDOI/segmentation-inference" alt="GitHub watchers"></a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/graphs/contributors"><img src="https://img.shields.io/github/contributors/SeatizenDOI/uav-segmentation-coral" alt="GitHub contributors"></a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/network/members"><img src="https://img.shields.io/github/forks/SeatizenDOI/uav-segmentation-coral" alt="GitHub forks"></a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/issues"><img src="https://img.shields.io/github/issues/SeatizenDOI/uav-segmentation-coral" alt="GitHub issues"></a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/blob/master/LICENSE"><img src="https://img.shields.io/github/license/SeatizenDOI/uav-segmentation-coral" alt="License"></a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/pulls"><img src="https://img.shields.io/github/issues-pr/SeatizenDOI/uav-segmentation-coral" alt="GitHub pull requests"></a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/stargazers"><img src="https://img.shields.io/github/stars/SeatizenDOI/uav-segmentation-coral" alt="GitHub stars"></a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/watchers"><img src="https://img.shields.io/github/watchers/SeatizenDOI/uav-segmentation-coral" alt="GitHub watchers"></a>
 </p>
 <div align="center">
-  <a href="https://github.com/SeatizenDOI/segmentation-inference">View framework</a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral">View framework</a>
   ·
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/issues">Report Bug</a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/issues">Report Bug</a>
   ·
-  <a href="https://github.com/SeatizenDOI/segmentation-inference/issues">Request Feature</a>
+  <a href="https://github.com/SeatizenDOI/uav-segmentation-coral/issues">Request Feature</a>
 </div>
 
 <div align="center">
 
-# Segmentation Inference
+# UAV Segmentation Coral
 
 </div>
 
