@@ -4,7 +4,8 @@ from pathlib import Path
 CROPPED_ORTHO = "cropped_ortho"
 CROPPED_ORTHO_IMG = "cropped_ortho_img"
 PREDICTIONS_TIFF = "predictions_tiff"
-MERGED_PREDICTIONS = "merged_predictions"
+PREDICTIONS_PNG = "predictions_png"
+MERGED_PREDICTIONS = "merged_predictions_quantile99"
 
 
 class PathManager:
@@ -15,7 +16,9 @@ class PathManager:
         self.output_folder = Path(output_folder)
         self.cropped_ortho_folder = Path(output_folder, CROPPED_ORTHO, raster_path.stem)
         self.cropped_ortho_img_folder = Path(output_folder, CROPPED_ORTHO_IMG, raster_path.stem)
-        self.predictions_tiff_folder = Path(output_folder, PREDICTIONS_TIFF, raster_path.stem)
+        self.predictions_tiff_base_folder = Path(output_folder, PREDICTIONS_TIFF, raster_path.stem, "base")
+        self.predictions_tiff_refine_folder = Path(output_folder, PREDICTIONS_TIFF, raster_path.stem, "refine")
+        self.predictions_png_base_folder = Path(output_folder, PREDICTIONS_PNG, raster_path.stem, "base")
         self.merged_predictions_folder = Path(output_folder, MERGED_PREDICTIONS)
         self.final_merged_tiff_file = Path(self.merged_predictions_folder, f"{raster_path.stem}_merged_predictions.tif")
 
@@ -26,7 +29,7 @@ class PathManager:
         return len(list(self.cropped_ortho_img_folder.iterdir())) == 0
 
     def is_empty_predictions_tiff_folder(self) -> bool:
-        return len(list(self.predictions_tiff_folder.iterdir())) == 0
+        return len(list(self.predictions_tiff_base_folder.iterdir())) == 0
 
     def clean(self):
         """ Remvoe previous intermediate files and create path. """
@@ -39,7 +42,9 @@ class PathManager:
         print("*\t Create sub folder. ")
         self.cropped_ortho_folder.mkdir(exist_ok=True, parents=True)
         self.cropped_ortho_img_folder.mkdir(exist_ok=True, parents=True)
-        self.predictions_tiff_folder.mkdir(exist_ok=True, parents=True)
+        self.predictions_tiff_base_folder.mkdir(exist_ok=True, parents=True)
+        self.predictions_tiff_refine_folder.mkdir(exist_ok=True, parents=True)
+        self.predictions_png_base_folder.mkdir(exist_ok=True, parents=True)
         self.merged_predictions_folder.mkdir(exist_ok=True, parents=True)
 
 
@@ -50,5 +55,6 @@ class PathManager:
             shutil.rmtree(self.cropped_ortho_folder)
         if self.cropped_ortho_img_folder.exists():
             shutil.rmtree(self.cropped_ortho_img_folder)
-        if self.predictions_tiff_folder.exists():
-            shutil.rmtree(self.predictions_tiff_folder)
+        tmp =  Path(self.output_folder, PREDICTIONS_TIFF, self.raster_path.stem)
+        if tmp.exists():
+            shutil.rmtree(tmp)

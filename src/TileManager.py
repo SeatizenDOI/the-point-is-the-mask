@@ -17,6 +17,7 @@ from shapely.geometry import shape, box
 
 
 from .PathManager import PathManager
+from .utils.underwater_correction import apply_filter, get_color_filter_matrix
 
 NUM_WORKERS = max(1, cpu_count() - 2)  # Use available CPU cores, leaving some free
 
@@ -128,6 +129,12 @@ class TileManager:
             raster_data = src_ds.ReadAsArray()
             if raster_data.ndim == 3:
                 image = Image.fromarray(np.transpose(raster_data[:3], (1, 2, 0)).astype(np.uint8), mode="RGB")
+                if self.opt.underwater_color_correction:
+                    pixels = np.array(image, dtype=np.uint8)
+                    height, width = pixels.shape[:2]  # Get image dimensions
+                    filter = get_color_filter_matrix(pixels, width, height)
+                    img_out = apply_filter(pixels, filter)
+                    image = Image.fromarray(img_out, "RGB")
             else:
                 raise ValueError(f"Unexpected image format: {raster_data.shape}")
             image.save(png_output_path)

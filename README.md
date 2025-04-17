@@ -93,3 +93,6 @@ After you get your global_tile folder you can follow the [tms-server README](htt
 ## Runner
 
 python main.py -efol -c && docker run --rm -it --user 1000:1000 -v .:/app ghcr.io/osgeo/gdal:latest sh -c "cd /app && ./apply_gdal.sh"
+
+# Sources
+

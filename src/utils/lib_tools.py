@@ -47,7 +47,7 @@ def get_list_rasters(opt) -> list[Path]:
         list_sessions = [src]
 
     elif mode == Sources.FOLDER:
-        list_sessions = sorted(list(src.iterdir()))
+        list_sessions = sorted([s for s in src.iterdir() if s.is_file() and s.suffix.lower() == ".tif"])
     
     elif mode == Sources.CSV_SESSION:
         if src.exists():

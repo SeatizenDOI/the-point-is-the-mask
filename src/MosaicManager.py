@@ -17,7 +17,7 @@ class MosaicManager:
         self.tmp_rasters_slice = []
         self.path_manager = path_manager
 
-        self.predictions_tiff_files = sorted(list(self.path_manager.predictions_tiff_folder.iterdir()))
+        self.predictions_tiff_files = sorted(list(self.path_manager.predictions_tiff_base_folder.iterdir()))
         
         with rasterio.open(self.predictions_tiff_files[0]) as src:
             self.crs = src.crs
@@ -34,12 +34,13 @@ class MosaicManager:
 
     def get_min_max_global(self):
         # !FIXME Remove this function by reading config file when model will be on hugging face. 
-        for src_path in tqdm(self.predictions_tiff_files, desc="Analyzing raster values", unit="file"):
-            with rasterio.open(src_path) as src:
-                tile = src.read(1)
-            self.global_min = min(self.global_min, tile.min())
-            self.global_max = max(self.global_max, tile.max())
-
+        # for src_path in tqdm(self.predictions_tiff_files, desc="Analyzing raster values", unit="file"):
+        #     with rasterio.open(src_path) as src:
+        #         tile = src.read(1)
+        #     self.global_min = min(self.global_min, tile.min())
+        #     self.global_max = max(self.global_max, tile.max())
+        self.global_min = 1
+        self.global_max = 5
         self.num_classes = int(self.global_max - self.global_min + 1)
         print(f"✅ Detected class range: {self.global_min} to {self.global_max} ({self.num_classes} classes)")
 
