@@ -26,7 +26,7 @@ class ModelManager:
         self.model = SegformerForSemanticSegmentation.from_pretrained(self.opt.path_segmentation_model).to(self.device)
         self.processor = AutoImageProcessor.from_pretrained("nvidia/mit-b0", do_reduce_labels=False)
 
-        sam_checkpoint = "/home/bioeos/Documents/project_hub/SAMRefiner/checkpoints/sam_vit_h_4b8939.pth"
+        sam_checkpoint = "./models/sam_vit_h_4b8939.pth"
         model_type = "vit_h"
 
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)

@@ -1,0 +1,22 @@
+
+
+{
+    "output_path": "data",
+    "list_asv_sessions": [
+        "20231204_REU-TROU-DEAU_ASV-1_03", "20231204_REU-TROU-DEAU_ASV-1_04", 
+        "20231123_REU-TROU-DEAU_ASV-1_04", "20240322_REU-TROU-DEAU_ASV-1_01",
+        "20240322_REU-TROU-DEAU_ASV-1_03", "20240322_REU-TROU-DEAU_ASV-1_02"
+    ],
+
+    "list_uav_sessions": [
+        "20231202_REU-TROU-DEAU_UAV-01_01", "20231208_REU-ST-LEU_UAV-01_03"
+    ],
+
+    "list_labels_asv_predictions": ["Acropore_branched", "Acropore_tabular", "Sand", "No_acropore_massive", "No_acropore_sub_massive"],
+
+    "clean": {
+        "asv_session": false,
+        "asv_coarse": false,
+        "uav_session": false
+    }
+}

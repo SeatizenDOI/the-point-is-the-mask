@@ -96,5 +96,13 @@ After you get your global_tile folder you can follow the [tms-server README](htt
 
 python main.py -efol -c && docker run --rm -it --user 1000:1000 -v .:/app ghcr.io/osgeo/gdal:latest sh -c "cd /app && ./apply_gdal.sh"
 
-# Sources
+
+
+## Download the need data : 
+
+
+First download a [model checkpoint](https://github.com/facebookresearch/segment-anything?tab=readme-ov-file#model-checkpoints) to <path/to/checkpoint>. For example, download the default sam_vit_h:
+```
+wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth -O <path/to/checkpoint>
+```
 

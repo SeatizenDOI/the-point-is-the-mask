@@ -55,3 +55,16 @@ def get_list_rasters(opt) -> list[Path]:
             list_sessions = [Path(row.root_folder, row.session_name) for row in df_ses.itertuples(index=False)]
 
     return list_sessions
+
+
+
+def print_header():
+
+    print("""
+    
+▄▖▌     ▄▖  ▘  ▗   ▄▖    ▄▖▌     ▖  ▖    ▌ 
+▐ ▛▌█▌  ▙▌▛▌▌▛▌▜▘  ▐ ▛▘  ▐ ▛▌█▌  ▛▖▞▌▀▌▛▘▙▘
+▐ ▌▌▙▖  ▌ ▙▌▌▌▌▐▖  ▟▖▄▌  ▐ ▌▌▙▖  ▌▝ ▌█▌▄▌▛▖
+          
+
+""")

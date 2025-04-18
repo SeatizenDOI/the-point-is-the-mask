@@ -1,60 +1,35 @@
 import shutil
 from pathlib import Path
 
-CROPPED_ORTHO = "cropped_ortho"
-CROPPED_ORTHO_IMG = "cropped_ortho_img"
-PREDICTIONS_TIFF = "predictions_tiff"
-PREDICTIONS_PNG = "predictions_png"
-MERGED_PREDICTIONS = "merged_predictions_quantile99"
-
+from .ConfigParser import ConfigParser
 
 class PathManager:
 
-    def __init__(self, output_folder: str, raster_path: Path):
+    def __init__(self, output_path: Path) -> None:
+        self.output_path = output_path
 
-        self.raster_path = raster_path
-        self.output_folder = Path(output_folder)
-        self.cropped_ortho_folder = Path(output_folder, CROPPED_ORTHO, raster_path.stem)
-        self.cropped_ortho_img_folder = Path(output_folder, CROPPED_ORTHO_IMG, raster_path.stem)
-        self.predictions_tiff_base_folder = Path(output_folder, PREDICTIONS_TIFF, raster_path.stem, "base")
-        self.predictions_tiff_refine_folder = Path(output_folder, PREDICTIONS_TIFF, raster_path.stem, "refine")
-        self.predictions_png_base_folder = Path(output_folder, PREDICTIONS_PNG, raster_path.stem, "base")
-        self.merged_predictions_folder = Path(output_folder, MERGED_PREDICTIONS)
-        self.final_merged_tiff_file = Path(self.merged_predictions_folder, f"{raster_path.stem}_merged_predictions.tif")
-
-    def is_empty_cropped_folder(self) -> bool:
-        return len(list(self.cropped_ortho_folder.iterdir())) == 0
-
-    def is_empty_cropped_img_folder(self) -> bool:
-        return len(list(self.cropped_ortho_img_folder.iterdir())) == 0
-
-    def is_empty_predictions_tiff_folder(self) -> bool:
-        return len(list(self.predictions_tiff_base_folder.iterdir())) == 0
-
-    def clean(self):
-        """ Remvoe previous intermediate files and create path. """
-        self.disk_optimize()
-        self.create_path()
+        self.asv_folder = Path(self.output_path, "asv")
+        self.uav_folder = Path(self.output_path, "uav")
+        self.asv_sessions_folder = Path(self.asv_folder, "sessions")
+        self.asv_coarse_folder = Path(self.asv_folder, "coarse")
+        self.uav_sessions_folder = Path(self.uav_folder, "sessions")
 
 
-    def create_path(self) -> None:
-        """ Create all path associate to the session. """
-        print("*\t Create sub folder. ")
-        self.cropped_ortho_folder.mkdir(exist_ok=True, parents=True)
-        self.cropped_ortho_img_folder.mkdir(exist_ok=True, parents=True)
-        self.predictions_tiff_base_folder.mkdir(exist_ok=True, parents=True)
-        self.predictions_tiff_refine_folder.mkdir(exist_ok=True, parents=True)
-        self.predictions_png_base_folder.mkdir(exist_ok=True, parents=True)
-        self.merged_predictions_folder.mkdir(exist_ok=True, parents=True)
+    def setup(self, cp: ConfigParser) -> None:
+        print("------ [CLEANING] ------")
+        if cp.clean_asv_session() and self.asv_sessions_folder.exists():
+            print(f"\t * Delete {self.asv_sessions_folder}")
+            shutil.rmtree(self.asv_sessions_folder)
 
+        if cp.clean_asv_coarse() and self.asv_coarse_folder.exists():
+            print(f"\t * Delete {self.asv_coarse_folder}")
+            shutil.rmtree(self.asv_coarse_folder)
 
-    def disk_optimize(self) -> None:
-        """ Remove all intermediate files"""
-        print("*\t Remove all folder if exists. ")
-        if self.cropped_ortho_folder.exists():
-            shutil.rmtree(self.cropped_ortho_folder)
-        if self.cropped_ortho_img_folder.exists():
-            shutil.rmtree(self.cropped_ortho_img_folder)
-        tmp =  Path(self.output_folder, PREDICTIONS_TIFF, self.raster_path.stem)
-        if tmp.exists():
-            shutil.rmtree(tmp)
+        if cp.clean_uav_session() and self.uav_sessions_folder.exists():
+            print(f"\t * Delete {self.uav_sessions_folder}")
+            shutil.rmtree(self.uav_sessions_folder)
+
+        print(f"\t * Create all subfolders.")
+        self.asv_coarse_folder.mkdir(exist_ok=True, parents=True)
+        self.asv_sessions_folder.mkdir(exist_ok=True, parents=True)
+        self.uav_sessions_folder.mkdir(exist_ok=True, parents=True)
