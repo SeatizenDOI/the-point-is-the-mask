@@ -89,7 +89,7 @@ class ModelManager:
         return mask_resized_bilinear + 1
     
 
-    def inference(self, path_manager: PathManager):
+    def inference(self, path_manager: PathRasterManager):
         print("*\t Perform inference.")
         session_images = sorted(list(path_manager.cropped_ortho_img_folder.iterdir()))
         predicted_rasters = []

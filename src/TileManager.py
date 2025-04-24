@@ -28,7 +28,7 @@ class TileManager:
         self.pm = pm
 
 
-    def create_tiles_and_annotations(self, uav_manager: UAVManager) -> None:
+    def create_tiles_and_annotations(self, uav_manager: UAVManager) -> bool:
 
         print("\n\n------ [TILES - Create ortho and annotation tiles] ------\n")
 
@@ -37,7 +37,7 @@ class TileManager:
 
         if len_cropped_folder == len_upsampled_anno_folder and len_cropped_folder != 0:
             print("Tiff tiles and annotations already exist. we don't split.")
-            return
+            return False
 
         for raster_anno in self.pm.asv_coarse_folder.iterdir():
 
@@ -62,7 +62,9 @@ class TileManager:
                 with Pool(NUM_WORKERS) as pool:
                     list(tqdm(pool.imap_unordered(self.process_tile, tile_coords), total=len(tile_coords), desc="Processing Tiles"))
 
-
+        return True
+    
+    
     def get_valid_polygon_from_raster(self, raster_path: Path) -> GeometryCollection:
         """ """
         if not raster_path.exists() or not raster_path.is_file():

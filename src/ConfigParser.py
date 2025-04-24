@@ -11,7 +11,8 @@ class ConfigParser:
         self.opt = opt
 
         self.config_json = self.load_config_json()
-
+        self.env_json = self.load_env_file()
+    
         self.tiles_dict, self.clean_dict, self.model_dict = {}, {}, {}
         self.verify_basic_header_exists()
 
@@ -26,6 +27,21 @@ class ConfigParser:
             config_data = json.load(f)
 
         return config_data
+    
+    def load_env_file(self) -> dict:
+
+        env_path = Path(self.opt.env_path)
+        if not env_path.exists() or not env_path.is_file():
+            raise FileNotFoundError(f"Cannot find config path at {env_path}")
+        
+        env_data = {}
+        with open(env_path, "r") as file:
+            for row in file:
+                k, v = row.replace("\n", "").split("=")
+                env_data[k] = v
+        
+        return env_data
+
     
     def verify_basic_header_exists(self) -> None:
         self.clean_dict = self.config_json.get(CLEAN_PARAMETERS, {})
@@ -55,6 +71,9 @@ class ConfigParser:
     def get_drone_zone_polygon_path(self) -> list:
         return self.config_json.get("drone_test_zone_polygon_path", [])
     
+    def get_hugging_face_token(self) -> str:
+        return self.env_json.get("HUGGINGFACE_TOKEN", "")
+    
 
     ## Tiles.
     def get_tile_size(self) -> int:
@@ -76,7 +95,6 @@ class ConfigParser:
         return bool(self.tiles_dict.get("with_color_correction", False))
 
     ## Clean.
-
     def clean_asv_session(self) -> bool:
         return bool(self.clean_dict.get("asv_session", False))
 
@@ -97,3 +115,40 @@ class ConfigParser:
     
     def clean_test(self) -> bool:
         return bool(self.clean_dict.get("test", False))
+    
+    ## Models.
+    @property
+    def model_name(self) -> str:
+        return str(self.model_dict.get("model_name", ""))
+    
+    @property
+    def epochs(self) -> int:
+        return int(self.model_dict.get("epochs", 0))
+    
+    @property
+    def batch_size(self) -> int:
+        return int(self.model_dict.get("batch_size", 0))
+
+    @property
+    def initial_learning_rate(self) -> float:
+        return float(self.model_dict.get("initial_learning_rate", 0))
+    
+    @property
+    def weight_decay(self) -> float:
+        return float(self.model_dict.get("weight_decay", 0))
+    
+    @property
+    def factor_lr_scheduler(self) -> float:
+        return float(self.model_dict.get("factor_lr_scheduler", 0))
+    
+    @property
+    def patience_lr_scheduler(self) -> int:
+        return int(self.model_dict.get("patience_lr_scheduler", 0))
+
+    @property
+    def early_stopping_patience(self) -> int:
+        return int(self.model_dict.get("early_stopping_patience", 0))
+    
+    @property
+    def path_output_dir(self) -> str:
+        return self.model_dict.get("path_output_dir", "")

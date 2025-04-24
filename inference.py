@@ -43,7 +43,6 @@ def parse_args() -> Namespace:
 
 def main(opt: Namespace) -> None:
 
-
     tile_manager = TileManager(opt)
     model_manager = ModelManager(opt)
 
@@ -92,4 +91,5 @@ def main(opt: Namespace) -> None:
 
 if __name__ == "__main__":
     opt = parse_args()
-    main(opt)
+    print(opt)
+    # main(opt)

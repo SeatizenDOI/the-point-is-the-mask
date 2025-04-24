@@ -1,4 +1,5 @@
 import enum
+import torch
 import pandas as pd
 from pathlib import Path
 
@@ -68,3 +69,13 @@ def print_header():
           
 
 """)
+    
+def print_gpu_is_used() -> None:
+    """ Print banner to show if gpu is used. """
+    # Check if GPU available
+    if torch.cuda.is_available():
+        print("\n###################################################")
+        print("Using GPU for training.")
+        print("###################################################\n")
+    else:
+        print("GPU not available, using CPU instead.")

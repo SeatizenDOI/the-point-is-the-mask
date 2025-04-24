@@ -16,24 +16,31 @@
 
     "clean": {
         "asv_session": false,
-        "asv_coarse": true,
+        "asv_coarse": false,
         "uav_session": false,
-        "cropped_ortho_tif": true,
-        "upscaling_annotation_tif": true,
-        "train": true,
-        "test": true
+        "cropped_ortho_tif": false,
+        "upscaling_annotation_tif": false,
+        "train": false,
+        "test": false
     },
     "models": {
-        "epochs": 100,
+        "epochs": 1,
         "batch_size": 16,
         "initial_learning_rate": 1e-5,
         "weight_decay": 0.01,
         "factor_lr_scheduler": 0.1,
         "patience_lr_scheduler": 5,
-        "early_stopping_patience": 10
+        "early_stopping_patience": 10,
+        "resume": false,
+        "model_name": "nvidia/mit-b0",
+        "path_output_dir": "models"
+    },
+    "hugging_face": {
+        "upload_coarse": false,
+        "upload_refine": true
     },
     "tiles": {
-        "tile_size": 256,
+        "tile_size": 512,
         "horizontal_overlap": 0,
         "vertical_overlap": 0,
         "with_color_correction": false
