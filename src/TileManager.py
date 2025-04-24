@@ -1,16 +1,18 @@
-from pathlib import Path
 import numpy as np
-from shapely import Polygon, GeometryCollection, box
+from PIL import Image
+from tqdm import tqdm
+from osgeo import gdal
+import geopandas as gpd
+from pathlib import Path
+from pyproj import Transformer
 from multiprocessing import Pool, cpu_count
+
 import rasterio
 import rasterio.warp
 from rasterio.windows import Window
-from tqdm import tqdm
-from osgeo import gdal
-from PIL import Image
-import geopandas as gpd
+
 from shapely.ops import transform, unary_union
-from pyproj import Transformer
+from shapely import Polygon, GeometryCollection, box
 
 from .ConfigParser import ConfigParser
 from .PathManager import PathManager

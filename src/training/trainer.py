@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-
 from transformers import SegformerForSemanticSegmentation, TrainingArguments, Trainer, EarlyStoppingCallback
+
 
 from .loss import DiceLoss
 from ..ConfigParser import ConfigParser

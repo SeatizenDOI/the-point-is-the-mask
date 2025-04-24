@@ -1,9 +1,9 @@
 import rasterio
 from pathlib import Path
-from .lib.zenodo_downloader import download_manager_without_token, get_version_from_session_name
 
-from .ConfigParser import ConfigParser
 from .PathManager import PathManager
+from .ConfigParser import ConfigParser
+from .lib.zenodo_downloader import download_manager_without_token, get_version_from_session_name
 
 class UAVManager:
 

@@ -1,6 +1,5 @@
 
 from argparse import Namespace, ArgumentParser
-from pathlib import Path
 
 from src.ConfigParser import ConfigParser
 from src.PathManager import PathManager

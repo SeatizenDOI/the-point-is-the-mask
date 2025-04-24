@@ -1,8 +1,8 @@
 import torch
-from torchvision.transforms import ColorJitter
 import numpy as np
-from transformers import AutoImageProcessor
 from pathlib import Path
+from transformers import AutoImageProcessor
+from torchvision.transforms import ColorJitter
 from sklearn.model_selection import train_test_split
 
 from ..ConfigParser import ConfigParser
