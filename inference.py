@@ -3,10 +3,10 @@ from datetime import datetime
 from argparse import Namespace, ArgumentParser
 
 from src.utils.lib_tools import get_list_rasters
-from src.PathManager import PathManager
-from src.TileManager import TileManager
-from src.ModelManager import ModelManager
-from src.MosaicManager import MosaicManager
+from src.inference.PathRasterManager import PathRasterManager
+from src.inference.TileManager import TileManager
+from src.inference.ModelManager import ModelManager
+from src.inference.MosaicManager import MosaicManager
 
 def parse_args() -> Namespace:
 
@@ -57,7 +57,7 @@ def main(opt: Namespace) -> None:
 
         print(f"\n\n--- {i+1}/{len(list_rasters)} - Working with {raster_path.stem}")        
         t_start = datetime.now()
-        path_manager = PathManager(opt.path_output, raster_path)
+        path_manager = PathRasterManager(opt.path_output, raster_path)
 
         # Clean if needed
         path_manager.clean() if opt.clean else path_manager.create_path()

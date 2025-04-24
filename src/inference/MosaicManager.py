@@ -8,12 +8,12 @@ from rasterio.merge import merge
 from rasterio.transform import Affine
 from rasterio.windows import from_bounds
 
-from .PathManager import PathManager
+from .PathRasterManager import PathRasterManager
 
 MAX_PIXEL_PER_RASTER = 800000000
 
 class MosaicManager:
-    def __init__(self, path_manager: PathManager):
+    def __init__(self, path_manager: PathRasterManager):
         self.tmp_rasters_slice = []
         self.path_manager = path_manager
 

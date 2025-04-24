@@ -12,8 +12,8 @@ from segment_anything import sam_model_registry
 from scipy.ndimage import distance_transform_edt
 from osgeo import gdal
 
-from .lib.sam_refiner import sam_refiner
-from .PathManager import PathManager
+from ..lib.sam_refiner import sam_refiner
+from .PathRasterManager import PathRasterManager
 
 UNWANTED_VALUE = 6
 

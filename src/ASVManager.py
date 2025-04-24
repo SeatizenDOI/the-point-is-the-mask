@@ -15,6 +15,7 @@ class ASVManager:
         self.pm = pm
     
         self.class_quantiles = self.setup()
+        self.class_mapping = {}
 
     
     def setup(self) -> dict:
@@ -59,8 +60,14 @@ class ASVManager:
         for session_name in self.cp.get_asv_sessions():
             
             classification_raster = Path(self.pm.asv_coarse_folder, f"{session_name}_classification.tif")
-            if classification_raster.exists() and classification_raster.is_file(): 
+            if classification_raster.exists() and classification_raster.is_file():
                 print(f"{session_name}: Don't perform coarse annotation. Raster already exists")
+
+                if len(self.class_mapping) == 0:
+                    # Reading the tags to get min and max labels 
+                    with rasterio.open(classification_raster) as src:
+                        self.class_mapping = {k: v for k, v in src.tags().items() if k.isdigit()}
+                
                 continue
 
             session_path_ia = Path(self.pm.asv_sessions_folder, session_name, "PROCESSED_DATA", "IA")
@@ -94,9 +101,12 @@ class ASVManager:
             out_meta = src_files[0].meta.copy()
             out_meta.update({"count": 1, "dtype": classification_map.dtype, "nodata": 255})
 
+            class_mapping = {str(i + 1): class_names[i] for i in range(len(class_names))}
+            if len(self.class_mapping) == 0:
+                self.class_mapping = class_mapping
+
             with rasterio.open(classification_raster, "w", **out_meta) as dest:
                 dest.write(classification_map, 1)
-                class_mapping = {str(i + 1): class_names[i] for i in range(len(class_names))}
                 dest.update_tags(**class_mapping)
 
             print(f"Saved classified raster: {classification_raster}")
@@ -125,3 +135,7 @@ class ASVManager:
         doi = version_json["id"]
 
         download_manager_without_token(list_files, session_path, doi)
+    
+
+    def get_classes_mapping(self) -> dict:
+        return self.class_mapping

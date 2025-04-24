@@ -5,6 +5,8 @@ from pathlib import Path
 from src.ConfigParser import ConfigParser
 from src.PathManager import PathManager
 from src.ASVManager import ASVManager
+from src.UAVManager import UAVManager
+from src.TileManager import TileManager
 from src.utils.lib_tools import print_header
 
 def parse_args() -> Namespace:
@@ -33,6 +35,14 @@ def main(opt: Namespace) -> None:
     asv_manager = ASVManager(cp, pm)
     asv_manager.create_coarse_annotations()
 
+    uav_manager = UAVManager(cp, pm)
+
+    tile_manager = TileManager(cp, pm)
+
+    tile_manager.create_tiles_and_annotations(uav_manager)
+    test_images_list = tile_manager.convert_tiff_to_png(uav_manager.get_default_crs())
+    tile_manager.convert_tiff_to_png_annotations(test_images_list)
+    tile_manager.verify_if_annotation_tiles_contains_valid_values(asv_manager.get_classes_mapping())
 
 
 if __name__ == "__main__":
