@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from .PathManager import PathManager
 from .ConfigParser import ConfigParser
-from .lib.zenodo_downloader import download_manager_without_token, get_version_from_session_name
+from .utils.zenodo_downloader import download_manager_without_token, get_version_from_session_name
 
 class ASVManager:
 
