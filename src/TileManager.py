@@ -55,8 +55,8 @@ class TileManager:
                 valid_polygon = self.get_valid_polygon_from_raster(raster_anno)
 
                 tile_coords = [(session_name, x, y, ortho_path, valid_polygon, raster_anno) 
-                    for x in range(0, width - self.cp.get_tile_size() + 1, self.cp.get_horizontal_step()) 
-                    for y in range(0, height - self.cp.get_tile_size() + 1, self.cp.get_vertical_step())]
+                    for x in range(0, width - self.cp.tile_size + 1, self.cp.horizontal_step) 
+                    for y in range(0, height - self.cp.tile_size + 1, self.cp.vertical_step)]
                 
                 # Process tiles in parallel
                 with Pool(NUM_WORKERS) as pool:
@@ -125,7 +125,7 @@ class TileManager:
     def process_tile(self, args: tuple) -> None:
         
         session_name, tile_x, tile_y, orthophoto_path, valid_polygon, annotation_path = args
-        tile_size = self.cp.get_tile_size()
+        tile_size = self.cp.tile_size
 
         # Open orthophoto inside the worker
         with rasterio.open(orthophoto_path) as ortho:
@@ -218,7 +218,7 @@ class TileManager:
         
         # From drone zone, we try to extract images
         all_drone_test_polygon = []
-        for drone_test_zone in self.cp.get_drone_zone_polygon_path():
+        for drone_test_zone in self.cp.drone_zone_polygon_path:
 
             # Load the boundary shapefile as a GeoDataFrame
             drone_test_polygon_gpd = gpd.read_file(drone_test_zone)
@@ -284,7 +284,7 @@ class TileManager:
             raster_data = src_ds.ReadAsArray()
             if raster_data.ndim == 3:
                 image = Image.fromarray(np.transpose(raster_data[:3], (1, 2, 0)).astype(np.uint8), mode="RGB")
-                if self.cp.use_color_correction():
+                if self.cp.use_color_correction:
                     pixels = np.array(image, dtype=np.uint8)
                     height, width = pixels.shape[:2]  # Get image dimensions
                     filter = get_color_filter_matrix(pixels, width, height)

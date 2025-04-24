@@ -21,7 +21,7 @@ class UAVManager:
         
         print("\n\n------ [UAV - Download photog] ------\n")
         # Download sessions
-        for session in self.cp.get_uav_sessions():
+        for session in self.cp.uav_sessions:
             session_path = Path(self.pm.uav_sessions_folder, session)
             self.setup_session_uav(session_path)
 

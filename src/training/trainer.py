@@ -12,7 +12,7 @@ class CustomTrainer(Trainer):
 
         self.loss_function = loss_function
 
-    def compute_loss(self, model, inputs, return_outputs=False):
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         labels = inputs.pop("labels").long()  # Convert labels to integers
         outputs = model(**inputs)
         logits = outputs.logits  # Shape: [B, num_labels, H, W]
@@ -29,8 +29,8 @@ class CustomTrainer(Trainer):
         return (loss, outputs) if return_outputs else loss
 
 
-def setup_trainer(cp: ConfigParser, num_labels: int, train_ds, validation_ds, ) -> CustomTrainer:
 
+def setup_trainer(cp: ConfigParser, num_labels: int, train_ds, validation_ds, ) -> CustomTrainer:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = SegformerForSemanticSegmentation.from_pretrained(
         cp.model_name,

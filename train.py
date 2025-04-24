@@ -34,7 +34,7 @@ def main(opt: Namespace) -> None:
     cp = ConfigParser(opt)
 
     # Initialize path manager.
-    pm = PathManager(cp.get_output_path())
+    pm = PathManager(cp.output_path)
     pm.setup(cp)
 
     # Create coarse annotations.

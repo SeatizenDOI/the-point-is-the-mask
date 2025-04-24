@@ -22,7 +22,7 @@ class ASVManager:
         
         print("\n\n------ [ASV - Download and get class quantiles] ------\n")
         # Download sessions
-        for session in self.cp.get_asv_sessions():
+        for session in self.cp.asv_sessions:
             session_path = Path(self.pm.asv_sessions_folder, session)
             self.setup_session_asv(session_path)
 
@@ -36,7 +36,7 @@ class ASVManager:
                 if raster.suffix.lower() not in [".tif"]: continue
                 
                 class_name = raster.name.replace("_raster.tif", "").replace(f"{session_path.name}_", "")
-                if class_name not in self.cp.get_list_label_asv(): continue
+                if class_name not in self.cp.list_label_asv: continue
                 
                 with rasterio.open(raster) as src:
                     data = src.read(1).astype(np.float32)
@@ -57,7 +57,7 @@ class ASVManager:
         
         print("\n\n------ [ASV - Create coarse annotations] ------\n")
 
-        for session_name in self.cp.get_asv_sessions():
+        for session_name in self.cp.asv_sessions:
             
             classification_raster = Path(self.pm.asv_coarse_folder, f"{session_name}_classification.tif")
             if classification_raster.exists() and classification_raster.is_file():
@@ -76,7 +76,7 @@ class ASVManager:
                 if raster.suffix.lower() not in [".tif"]: continue
                 
                 class_name = raster.name.replace("_raster.tif", "").replace(f"{session_name}_", "")
-                if class_name not in self.cp.get_list_label_asv(): continue
+                if class_name not in self.cp.list_label_asv: continue
 
                 class_names.append(class_name)
                 raster_files.append(raster)

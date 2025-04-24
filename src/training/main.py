@@ -8,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from ..ConfigParser import ConfigParser
 from .dataset import create_dataset
 from .trainer import setup_trainer
+from ..utils.lib_tools import print_gpu_is_used
 
 
 def main_launch_training(cp: ConfigParser, path_to_image: Path, class_mapping: dict) -> None:
@@ -82,9 +83,13 @@ def main_launch_training(cp: ConfigParser, path_to_image: Path, class_mapping: d
     validation_ds.set_transform(val_test_transforms)
     test_ds.set_transform(val_test_transforms)
 
-
-    setup_trainer(cp, len(class_mapping), train_ds, validation_ds)
-
-
     print("\n\n------ [TRAIN - Setup model] ------\n")
+
+    trainer = setup_trainer(cp, len(class_mapping), train_ds, validation_ds)
+
+    print("\n\n------ [TRAIN - Start training] ------\n")
+
+    print_gpu_is_used()
+    trainer.train()
+
 

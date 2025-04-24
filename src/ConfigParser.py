@@ -55,42 +55,53 @@ class ConfigParser:
 
 
     ## Getter part.
-
-    def get_asv_sessions(self) -> list:
+    @property
+    def asv_sessions(self) -> list:
         return self.config_json.get("list_asv_sessions", [])
 
-    def get_uav_sessions(self) -> list:
+    @property
+    def uav_sessions(self) -> list:
             return self.config_json.get("list_uav_sessions", [])
 
-    def get_output_path(self) -> Path:
+    @property
+    def output_path(self) -> Path:
         return Path(self.config_json.get("output_path", None))
 
-    def get_list_label_asv(self) -> list:
+    @property
+    def list_label_asv(self) -> list:
         return self.config_json.get("list_labels_asv_predictions", [])
     
-    def get_drone_zone_polygon_path(self) -> list:
+    @property
+    def drone_zone_polygon_path(self) -> list:
         return self.config_json.get("drone_test_zone_polygon_path", [])
     
-    def get_hugging_face_token(self) -> str:
+    @property
+    def hugging_face_token(self) -> str:
         return self.env_json.get("HUGGINGFACE_TOKEN", "")
     
 
     ## Tiles.
-    def get_tile_size(self) -> int:
+    @property
+    def tile_size(self) -> int:
         return int(self.tiles_dict.get("tile_size", 0))
 
-    def get_horizontal_overlap(self) -> int:
+    @property
+    def horizontal_overlap(self) -> int:
         return int(self.tiles_dict.get("horizontal_overlap", 0))
-
-    def get_vertical_overlap(self) -> int:
+    
+    @property
+    def vertical_overlap(self) -> int:
         return int(self.tiles_dict.get("vertical_overlap", 0))
 
-    def get_horizontal_step(self) -> int:
-        return int(self.get_tile_size() * (1 - self.get_horizontal_overlap()))
+    @property
+    def horizontal_step(self) -> int:
+        return int(self.tile_size * (1 - self.horizontal_overlap))
 
-    def get_vertical_step(self) -> int:
-        return int(self.get_tile_size() * (1 - self.get_vertical_overlap()))
+    @property
+    def vertical_step(self) -> int:
+        return int(self.tile_size * (1 - self.vertical_overlap))
     
+    @property
     def use_color_correction(self) -> bool:
         return bool(self.tiles_dict.get("with_color_correction", False))
 
