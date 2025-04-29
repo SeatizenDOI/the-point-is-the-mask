@@ -10,6 +10,8 @@ from src.utils.lib_tools import print_header
 
 
 from src.training.main import main_launch_training
+from src.training.training_step import TrainingStep
+
 
 from inference import parse_args as inference_parse_args
 from inference import main as inference_main
@@ -51,27 +53,17 @@ def main(opt: Namespace) -> None:
         tile_manager.verify_if_annotation_tiles_contains_valid_values(asv_manager.get_classes_mapping())
 
     # First training.
-    main_launch_training(cp, pm.train_folder, asv_manager.get_classes_mapping())
-
-    # Plot result.
+    first_model_path = main_launch_training(cp, pm.train_folder, asv_manager.get_classes_mapping(), TrainingStep.COARSE)
 
     # Inference with segrefiner.
-
-    # Second training
-
-    # Plot result.
-
-
-    #
-
     inference_args = Namespace(
         enable_folder=False, enable_session=True, enable_csv=False, 
         path_folder='input', 
         path_session='input/20231202_REU-TROU-DEAU_UAV-01_01_ortho.tif', 
         path_csv_file=None, 
-        path_segmentation_model='segmentation_model/quantile99-segmentation_model-ce0-dice1/checkpoint-5358', 
+        path_segmentation_model=first_model_path, 
         path_geojson='config/emprise_lagoon.geojson', 
-        horizontal_overlap=0.5, 
+        horizontal_overlap=0.5,   
         vertical_overlap=0.5, 
         tile_size=512, 
         geojson_crs='EPSG:4326', 
@@ -80,6 +72,16 @@ def main(opt: Namespace) -> None:
         index_start='0', 
         clean=True
     )
+    inference_main(inference_args)
+
+
+    # # Second training
+    # main_launch_training(cp, pm.train_folder, asv_manager.get_classes_mapping())
+
+
+    # Plot result.
+
+
 
 if __name__ == "__main__":
     opt = parse_args()

@@ -1,13 +1,16 @@
 import torch
-import torch.nn as nn
-from transformers import SegformerForSemanticSegmentation, TrainingArguments, Trainer, EarlyStoppingCallback
+from pathlib import Path
+from transformers import TrainingArguments, Trainer, EarlyStoppingCallback
 
 
 from .loss import DiceLoss
+from .dataset import DatasetManager
+from .hugging_model_manager import ModelManager
 from ..ConfigParser import ConfigParser
 
+
 class CustomTrainer(Trainer):
-    def __init__(self, *args, loss_function: nn.Module, **kwargs):
+    def __init__(self, *args, loss_function: torch.nn.Module, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.loss_function = loss_function
@@ -18,7 +21,7 @@ class CustomTrainer(Trainer):
         logits = outputs.logits  # Shape: [B, num_labels, H, W]
 
         # Resize labels to match prediction dimensions
-        labels = nn.functional.interpolate(
+        labels = torch.nn.functional.interpolate(
             labels.unsqueeze(1).float(),  # Convert to (B, 1, H, W)
             size=logits.shape[-2:],  # Match logits spatial size
             mode="nearest"
@@ -28,18 +31,17 @@ class CustomTrainer(Trainer):
 
         return (loss, outputs) if return_outputs else loss
 
+    def log(self, logs: dict[str, float], start_time: float | None = None) -> None:
+        # Ensure evaluations are logged only at the end of each epoch
+        logs["learning_rate"] = self._get_learning_rate()
+        super().log(logs, start_time)
 
 
-def setup_trainer(cp: ConfigParser, num_labels: int, train_ds, validation_ds, ) -> CustomTrainer:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = SegformerForSemanticSegmentation.from_pretrained(
-        cp.model_name,
-        num_labels=num_labels,  # Single channel output for fuzzy mask prediction
-        ignore_mismatched_sizes=True  # Allow resizing output layers
-    ).to(device)
+
+def setup_trainer(cp: ConfigParser, dataset_manager: DatasetManager, model_manager: ModelManager) -> CustomTrainer:
 
     training_args = TrainingArguments(
-        output_dir=cp.path_output_dir,
+        output_dir=model_manager.output_dir,
         eval_strategy="epoch",
         save_strategy="epoch",
         logging_strategy="epoch",  # Log only once per epoch
@@ -50,16 +52,16 @@ def setup_trainer(cp: ConfigParser, num_labels: int, train_ds, validation_ds, ) 
         weight_decay=cp.weight_decay,
         load_best_model_at_end=True,
         save_total_limit=1,
-        logging_dir="./logs",
+        logging_dir = Path(model_manager.output_dir, "logs"),
         logging_steps=10,
-        report_to="none",
-        push_to_hub=False,
+        report_to="tensorboard",
+        push_to_hub=model_manager.push_to_hub(),
         fp16=torch.cuda.is_available(),  # Enable mixed precision if GPU is available
         remove_unused_columns=False
     )
 
     optimizer = torch.optim.Adam(
-        model.parameters(),
+        model_manager.model.parameters(),
         lr=cp.initial_learning_rate,
         weight_decay=cp.weight_decay
     )
@@ -73,10 +75,10 @@ def setup_trainer(cp: ConfigParser, num_labels: int, train_ds, validation_ds, ) 
     early_stop = EarlyStoppingCallback(early_stopping_patience=cp.early_stopping_patience)
 
     trainer = CustomTrainer(
-        model=model,
+        model=model_manager.model,
         args=training_args,
-        train_dataset=train_ds,
-        eval_dataset=validation_ds,
+        train_dataset=dataset_manager.train_ds,
+        eval_dataset=dataset_manager.validation_ds,
         callbacks=[early_stop],
         optimizers=(optimizer, lr_scheduler),
         loss_function=DiceLoss()

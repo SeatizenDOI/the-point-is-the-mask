@@ -2,9 +2,12 @@ import json
 from pathlib import Path
 from argparse import Namespace
 
-CLEAN_PARAMETERS = "clean"
-TILES_PARAMETERS = "tiles"
-MODEL_PARAMETERS = "models"
+GLOBAL_PARAM = "global"
+CLEAN_PARAM = "clean"
+SETUP_PARAM = "setup"
+TILES_PARAM = "tiles"
+TRAIN_PARAM = "train"
+MODEL_PARAM = "parameters"
 class ConfigParser:
 
     def __init__(self, opt: Namespace) -> None:
@@ -14,7 +17,10 @@ class ConfigParser:
         self.env_json = self.load_env_file()
     
         self.tiles_dict, self.clean_dict, self.model_dict = {}, {}, {}
+        self.global_dict, self.setup_dict, self.train_dict = {}, {}, {}
+
         self.verify_basic_header_exists()
+
 
     def load_config_json(self) -> dict:
 
@@ -28,6 +34,7 @@ class ConfigParser:
 
         return config_data
     
+
     def load_env_file(self) -> dict:
 
         env_path = Path(self.opt.env_path)
@@ -44,36 +51,47 @@ class ConfigParser:
 
     
     def verify_basic_header_exists(self) -> None:
-        self.clean_dict = self.config_json.get(CLEAN_PARAMETERS, {})
-        if self.clean_dict == {}: raise NameError(f"Cannot find {CLEAN_PARAMETERS} in config json")
 
-        self.tiles_dict = self.config_json.get(TILES_PARAMETERS, {})
-        if self.tiles_dict == {}: raise NameError(f"Cannot find {TILES_PARAMETERS} in config json")
+        self.global_dict = self.config_json.get(GLOBAL_PARAM, {})
+        if self.global_dict == {}: raise NameError(f"Cannot find {GLOBAL_PARAM} in config json")
 
-        self.model_dict = self.config_json.get(MODEL_PARAMETERS, {})
-        if self.model_dict == {}: raise NameError(f"Cannot find {MODEL_PARAMETERS} in config json")
+        self.clean_dict = self.global_dict.get(CLEAN_PARAM, {})
+        if self.clean_dict == {}: raise NameError(f"Cannot find {CLEAN_PARAM} in config json")
+
+        self.setup_dict = self.config_json.get(SETUP_PARAM, {})
+        if self.setup_dict == {}: raise NameError(f"Cannot find {SETUP_PARAM} in config json")
+
+        self.tiles_dict = self.setup_dict.get(TILES_PARAM, {})
+        if self.tiles_dict == {}: raise NameError(f"Cannot find {TILES_PARAM} in config json")
+
+        self.train_dict = self.config_json.get(TRAIN_PARAM, {})
+        if self.train_dict == {}: raise NameError(f"Cannot find {TRAIN_PARAM} in config json")
+
+        self.model_dict = self.train_dict.get(MODEL_PARAM, {})
+        if self.model_dict == {}: raise NameError(f"Cannot find {MODEL_PARAM} in config json")
+
 
 
     ## Getter part.
     @property
     def asv_sessions(self) -> list:
-        return self.config_json.get("list_asv_sessions", [])
+        return self.setup_dict.get("list_asv_sessions", [])
 
     @property
     def uav_sessions(self) -> list:
-            return self.config_json.get("list_uav_sessions", [])
+            return self.setup_dict.get("list_uav_sessions", [])
 
     @property
     def output_path(self) -> Path:
-        return Path(self.config_json.get("output_path", None))
+        return Path(self.global_dict.get("output_path", None))
 
     @property
     def list_label_asv(self) -> list:
-        return self.config_json.get("list_labels_asv_predictions", [])
+        return self.setup_dict.get("list_labels_asv_predictions", [])
     
     @property
     def drone_zone_polygon_path(self) -> list:
-        return self.config_json.get("drone_test_zone_polygon_path", [])
+        return self.setup_dict.get("drone_test_zone_polygon_path", [])
     
     @property
     def hugging_face_token(self) -> str:
@@ -129,8 +147,12 @@ class ConfigParser:
     
     ## Models.
     @property
+    def base_model_name(self) -> str:
+        return str(self.train_dict.get("base_model", ""))
+    
+    @property
     def model_name(self) -> str:
-        return str(self.model_dict.get("model_name", ""))
+        return str(self.train_dict.get("model_name", ""))
     
     @property
     def epochs(self) -> int:
@@ -161,5 +183,26 @@ class ConfigParser:
         return int(self.model_dict.get("early_stopping_patience", 0))
     
     @property
-    def path_output_dir(self) -> str:
-        return self.model_dict.get("path_output_dir", "")
+    def path_models_checkpoints(self) -> str:
+        return self.train_dict.get("path_output_dir", "")
+    
+    @property
+    def resume_coarse_training(self) -> str | None:
+        t = self.train_dict.get("coarse_training", None)
+        if t == None: return None
+
+        return t.get("resume_from", "")
+
+    @property
+    def resume_refine_training(self) -> str | None:
+        t = self.train_dict.get("refine_training", None)
+        if t == None: return None
+
+        return t.get("resume_from", "")
+
+    @property
+    def upload_on_huggingface(self) -> bool:
+        t = self.train_dict.get("refine_training", False)
+        if t == False: return False
+
+        return t.get("upload_on_huggingface", False)
