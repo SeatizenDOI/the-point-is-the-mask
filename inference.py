@@ -79,8 +79,8 @@ def main(opt: Namespace) -> None:
             if opt.clean or path_manager.is_empty_predictions_tiff_folder():
                 model_manager.inference(path_manager)
             
-            mosaic_manager = MosaicManager(path_manager, opt.max_pixels_by_slice_of_rasters)
-            mosaic_manager.build_raster(model_manager.get_id2labels())
+            mosaic_manager = MosaicManager(path_manager, model_manager.get_id2label(), opt.max_pixels_by_slice_of_rasters)
+            mosaic_manager.build_raster()
             
         except Exception as e:
             print(traceback.format_exc(), end="\n\n")
@@ -99,5 +99,4 @@ def main(opt: Namespace) -> None:
 
 if __name__ == "__main__":
     opt = parse_args()
-    print(opt)
-    # main(opt)
+    main(opt)

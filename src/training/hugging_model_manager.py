@@ -6,7 +6,7 @@ from huggingface_hub import HfApi, HfFolder
 from transformers import SegformerForSemanticSegmentation
 
 from ..ConfigParser import ConfigParser
-from .training_step import TrainingStep, resume_from_training_step
+from ..utils.training_step import TrainingStep, resume_from_training_step
 
 class ModelManager():
 

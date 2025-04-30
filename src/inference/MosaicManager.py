@@ -22,7 +22,7 @@ class MosaicManager:
         with rasterio.open(self.predictions_tiff_files[0]) as src:
             self.crs = src.crs
 
-        self.global_min, self.global_max, self.num_classes  = min(id2label), max(id2label), len(id2label)
+        self.global_min, self.global_max, self.num_classes = min(id2label), max(id2label), len(id2label)
         print(f"✅ Detected class range: {self.global_min} to {self.global_max} ({self.num_classes} classes)")
 
 

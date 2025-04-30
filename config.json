@@ -7,10 +7,14 @@
             "asv_session": false,
             "asv_coarse": false,
             "uav_session": false,
-            "cropped_ortho_tif": false,
-            "upscaling_annotation_tif": false,
-            "train": false,
-            "test": false
+            "coarse_cropped_ortho_tif": false,
+            "coarse_upscaling_annotation_tif": false,
+            "coarse_train": false,
+            "coarse_test": false,
+            "refine_cropped_ortho_tif": false,
+            "refine_upscaling_annotation_tif": false,
+            "refine_train": false,
+            "refine_test": false
         }
     },
     "setup": {
@@ -49,7 +53,7 @@
         },
         "refine_training": {
             "resume_from": null,
-            "upload_on_huggingface": false
+            "upload_on_huggingface": true
         }
     }
 }

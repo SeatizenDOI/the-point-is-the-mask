@@ -22,11 +22,8 @@ def generate_model_card(data_paths: list[Path], model_manager: ModelManager, dat
             data[data_path.stem] = json.load(file)
   
     markdown_training_results = format_training_results_to_markdown(data["trainer_state"])
-    test_results_metrics_markdown = extract_test_results(data["test_results"], data["test_f1_per_class"])
+    test_results_metrics_markdown = extract_test_results(data["test_results"])
     # markdown_counts = dataset_manager.counts_df.to_markdown(index=False)
-    transforms_markdown = format_transforms_to_markdown(data["transforms"])
-    if data["config"].get('data_augmentation') == False :
-        transforms_markdown = "No augmentation"
     hyperparameters_markdown = format_hyperparameters_to_markdown(data["config"], data["all_results"])
     framework_versions_markdown = format_framework_versions_to_markdown()  
 
@@ -36,8 +33,7 @@ language:
 - eng
 license: cc0-1.0
 tags:
-- {model_manager.args.training_type}-image-classification
-- {model_manager.args.training_type}
+- segmentic-segmentation
 - generated_from_trainer
 base_model: {model_manager.model_name}
 model-index:
@@ -75,9 +71,6 @@ Details on the estimated number of images for each class are given in the follow
 ## Training hyperparameters
 {hyperparameters_markdown}
 
-## Data Augmentation
-Data were augmented using the following transformations :
-{transforms_markdown}
 
 ## Training results
 {markdown_training_results}
@@ -132,18 +125,9 @@ def format_training_results_to_markdown(trainer_state: dict) -> str:
     return markdown_table
 
 
-def extract_test_results(test_results: dict, test_f1_per_class: dict) -> str:
+def extract_test_results(test_results: dict) -> str:
     
     markdown = f"\n- Loss: {test_results.get('eval_loss', test_results.get('test_loss', 0.0)):.4f}"
-
-
-    if len(test_f1_per_class) > 0:
-        
-        markdown += "\n\n| Class | F1 per class |\n|----------|-------|\n"
-    
-        # Populate rows
-        for key, value in test_f1_per_class.items():
-            markdown += f"| {key} | {value:.4f} |\n"
     
     return markdown
 

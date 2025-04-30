@@ -1,7 +1,6 @@
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
-from osgeo import gdal
 import geopandas as gpd
 from pathlib import Path
 from pyproj import Transformer
@@ -19,6 +18,7 @@ from .PathManager import PathManager
 from .UAVManager import UAVManager
 
 from .utils.tiles_tools import convert_one_tiff_to_png
+from .utils.training_step import TrainingStep
 
 NUM_WORKERS = max(1, cpu_count() - 2)  # Use available CPU cores, leaving some free
 
@@ -29,12 +29,12 @@ class TileManager:
         self.pm = pm
 
 
-    def create_tiles_and_annotations(self, uav_manager: UAVManager) -> bool:
+    def create_tiles_and_annotations_coarse(self, uav_manager: UAVManager) -> bool:
 
-        print("\n\n------ [TILES - Create ortho and annotation tiles] ------\n")
+        print("\n\n------ [TILES - Create ortho and coarse annotation tiles] ------\n")
 
-        len_cropped_folder = len(list(self.pm.cropped_ortho_tif_folder.iterdir()))
-        len_upsampled_anno_folder = len(list(self.pm.upsampled_annotation_tif_folder.iterdir())) 
+        len_cropped_folder = len(list(self.pm.coarse_cropped_ortho_tif_folder.iterdir()))
+        len_upsampled_anno_folder = len(list(self.pm.coarse_upsampled_annotation_tif_folder.iterdir())) 
 
         if len_cropped_folder == len_upsampled_anno_folder and len_cropped_folder != 0:
             print("Tiff tiles and annotations already exist. we don't split.")
@@ -61,7 +61,7 @@ class TileManager:
                 
                 # Process tiles in parallel
                 with Pool(NUM_WORKERS) as pool:
-                    list(tqdm(pool.imap_unordered(self.process_tile, tile_coords), total=len(tile_coords), desc="Processing Tiles"))
+                    list(tqdm(pool.imap_unordered(self.process_tiles_coarse_annotation, tile_coords), total=len(tile_coords), desc="Processing Tiles"))
 
         return True
     
@@ -117,13 +117,13 @@ class TileManager:
                         src_crs=src.crs,
                         dst_transform=transform,
                         dst_crs=target_crs,
-                        resampling=rasterio.enums.Resampling.nearest
+                        resampling=rasterio.warp.Resampling.nearest
                     )
                 
                 dst.update_tags(**class_names)
 
 
-    def process_tile(self, args: tuple) -> None:
+    def process_tiles_coarse_annotation(self, args: tuple) -> None:
         
         session_name, tile_x, tile_y, orthophoto_path, valid_polygon, annotation_path = args
         tile_size = self.cp.tile_size
@@ -203,18 +203,18 @@ class TileManager:
         
 
         # Save the tile
-        tile_output_path = Path(self.pm.cropped_ortho_tif_folder, f"{session_name}_{tile_x}_{tile_y}.tif")
+        tile_output_path = Path(self.pm.coarse_cropped_ortho_tif_folder, f"{session_name}_{tile_x}_{tile_y}.tif")
         with rasterio.open(tile_output_path, "w", **tile_meta) as dest:
             dest.write(tile_ortho)
 
 
         # Save the upsampled annotation file for this tile
-        annotation_output_path = Path(self.pm.upsampled_annotation_tif_folder, f"{session_name}_{tile_x}_{tile_y}.tif")
+        annotation_output_path = Path(self.pm.coarse_upsampled_annotation_tif_folder, f"{session_name}_{tile_x}_{tile_y}.tif")
         with rasterio.open(annotation_output_path, "w", **upsampled_annotation_meta) as dest:
             dest.write(upsampled_annotation, 1)
     
 
-    def convert_tiff_to_png(self, default_uav_crs) -> list:
+    def convert_tiff_to_png(self, default_uav_crs: str, ts: TrainingStep) -> list:
         print("\n\n------ [TILES - Convert ortho tiff tiles to png] ------\n")
         
         # From drone zone, we try to extract images
@@ -240,46 +240,56 @@ class TileManager:
             all_drone_test_polygon.append(drone_test_polygon)
         drone_test_footprint = unary_union(all_drone_test_polygon)
         
+        folder_to_iter = self.pm.coarse_cropped_ortho_tif_folder if ts == TrainingStep.COARSE else self.pm.refine_cropped_ortho_tif_folder
         args, test_images_list = [], []
-        for file in self.pm.cropped_ortho_tif_folder.iterdir():
+        for file in folder_to_iter.iterdir():
             if file.suffix.lower() != ".tif": continue
 
             tile_bounds = box(*rasterio.open(file).bounds)
 
             if drone_test_footprint.intersects(tile_bounds):
                 test_images_list.append(file.stem)
-                
-            output_dir = self.pm.test_images_folder if file.stem in test_images_list else self.pm.train_images_folder
+            
+            if ts == TrainingStep.COARSE:
+                output_dir = self.pm.coarse_test_images_folder if file.stem in test_images_list else self.pm.coarse_train_images_folder
+            else:
+                output_dir = self.pm.refine_test_images_folder if file.stem in test_images_list else self.pm.refine_train_images_folder
             args.append((file, output_dir, self.cp.use_color_correction))
         
 
         with Pool(processes=cpu_count()) as pool:
-            list(tqdm(pool.imap(convert_one_tiff_to_png, args), total=len(args), desc=f"Processing {self.pm.cropped_ortho_tif_folder.name}"))
+            list(tqdm(pool.imap(convert_one_tiff_to_png, args), total=len(args), desc=f"Processing {folder_to_iter.name}"))
 
         
         return test_images_list
 
 
-    def convert_tiff_to_png_annotations(self, test_images_list: list) -> None:
+    def convert_tiff_to_png_annotations(self, test_images_list: list, ts: TrainingStep) -> None:
         print("\n\n------ [TILES - Convert anno tiff tiles to png] ------\n")
 
         args = []
-        for file in self.pm.upsampled_annotation_tif_folder.iterdir():
+        folder_to_iter = self.pm.coarse_upsampled_annotation_tif_folder if ts == TrainingStep.COARSE else self.pm.refine_annotation_tif_folder
+        for file in folder_to_iter.iterdir():
             if file.suffix.lower() != ".tif": continue
 
             # Determine output folder based on test session
-            output_dir = self.pm.test_annotation_folder if file.stem in test_images_list else self.pm.train_annotation_folder
+            if ts == TrainingStep.COARSE:
+                output_dir = self.pm.coarse_test_annotation_folder if file.stem in test_images_list else self.pm.coarse_train_annotation_folder
+            else:
+                output_dir = self.pm.refine_test_annotation_folder if file.stem in test_images_list else self.pm.refine_train_annotation_folder
+
 
             args.append((file, output_dir, self.cp.use_color_correction))
 
         with Pool(processes=cpu_count()) as pool:
-            list(tqdm(pool.imap(convert_one_tiff_to_png, args), total=len(args), desc=f"Processing {self.pm.upsampled_annotation_tif_folder.name}"))
+            list(tqdm(pool.imap(convert_one_tiff_to_png, args), total=len(args), desc=f"Processing {self.pm.coarse_upsampled_annotation_tif_folder.name}"))
     
 
-    def verify_if_annotation_tiles_contains_valid_values(self, classes_mapping: dict) -> None:
+    def verify_if_annotation_tiles_contains_valid_values(self, classes_mapping: dict, ts: TrainingStep) -> None:
 
         print("\n\n------ [TILES - Annotations check values] ------\n")
-        annotation_files = list(self.pm.train_annotation_folder.glob("*.png"))
+
+        annotation_files = list(self.pm.coarse_train_annotation_folder.glob("*.png")) if ts == TrainingStep.COARSE else list(self.pm.refine_train_annotation_folder.glob("*.png"))
         classes = [int(k) for k in classes_mapping.keys()]
         min_class, max_class = min(classes), max(classes)
         cpt_error = 0
@@ -293,15 +303,172 @@ class TileManager:
             if invalid_values.size == 0: continue
 
             cpt_error += 1
-            files_to_delete = [
-                Path(self.pm.cropped_ortho_tif_folder, f"{file.stem}.tif"),
-                Path(self.pm.upsampled_annotation_tif_folder, f"{file.stem}.tif"),
-                file,
-                Path(self.pm.train_images_folder, file.name)
-            ]
+            if ts == TrainingStep.COARSE:
+                files_to_delete = [
+                    Path(self.pm.coarse_cropped_ortho_tif_folder, f"{file.stem}.tif"),
+                    Path(self.pm.coarse_upsampled_annotation_tif_folder, f"{file.stem}.tif"),
+                    file,
+                    Path(self.pm.coarse_train_images_folder, file.name)
+                ]
+            else:
+                files_to_delete = [
+                    Path(self.pm.refine_cropped_ortho_tif_folder, f"{file.stem}.tif"),
+                    Path(self.pm.refine_annotation_tif_folder, f"{file.stem}.tif"),
+                    file,
+                    Path(self.pm.refine_train_images_folder, file.name)
+                ]
 
             for file_path in files_to_delete:
                 if file_path.exists():
                     file_path.unlink()
         
         print(f"On {len(annotation_files)} files, we have deleted {cpt_error} files")
+    
+
+    def align_annotation_to_ortho(self, annotation_path: Path, ortho_path: Path):
+
+        with rasterio.open(ortho_path) as ortho, rasterio.open(annotation_path) as anno:
+
+            if ortho.transform == anno.transform and ortho.crs == anno.crs and ortho.res == anno.res:
+                return
+            
+            print("Resampling and aligning annotation to match orthophoto...")
+
+            dst_transform = ortho.transform
+            dst_crs = ortho.crs
+            dst_width = ortho.width
+            dst_height = ortho.height
+
+            aligned_data = np.empty((1, dst_height, dst_width), dtype=anno.dtypes[0])
+
+            rasterio.warp.reproject(
+                source=rasterio.band(anno, 1),
+                destination=aligned_data[0],
+                src_transform=anno.transform,
+                src_crs=anno.crs,
+                dst_transform=dst_transform,
+                dst_crs=dst_crs,
+                resampling=rasterio.warp.Resampling.nearest
+            )
+
+            # Copy metadata
+            aligned_meta = ortho.meta.copy()
+            aligned_meta.update({
+                'count': 1,
+                'dtype': anno.dtypes[0]
+            })
+
+        # Save to temporary aligned file
+        with rasterio.open(annotation_path, 'w', **aligned_meta) as dst:
+            dst.write(aligned_data)
+
+
+    def process_tiles_refine_annotation(self, args: tuple) -> None:
+        session_name, tile_x, tile_y, orthophoto_path, gdf_footprint, annotation_path = args
+
+        # Open orthophoto inside the worker
+        with rasterio.open(orthophoto_path) as ortho:
+            # Define tile window with overlap applied
+            window = Window(tile_x, tile_y, self.cp.tile_size, self.cp.tile_size)
+            
+            # Define tile transform
+            tile_transform = rasterio.windows.transform(window, ortho.transform)
+
+            # Check if tile bounds are fully contained within the valid polygon
+            tile_bounds = box(*rasterio.windows.bounds(window, ortho.transform))
+            if not gdf_footprint.contains(tile_bounds):
+                return
+            
+            tile_ortho = ortho.read(window=window)
+
+            # Apply threshold to filter out mostly black or white tiles
+            greyscale_tile = np.sum(tile_ortho, axis=0) / 3
+            
+            # Black threshold.
+            percentage_black_pixel = np.sum(greyscale_tile == 0) * 100 / self.cp.tile_size**2
+            if percentage_black_pixel > 5:
+                # print(f"Skipping tile {tile_x}, {tile_y} as it is mostly black.")
+                return
+            # White threshold.
+            percentage_white_pixel = np.sum(greyscale_tile == 255) * 100 / self.cp.tile_size**2
+            if percentage_white_pixel > 10:
+                # print(f"Skipping tile {tile_x}, {tile_y} as it is mostly white.")
+                return
+            
+            tile_meta = ortho.meta.copy()
+            tile_meta.update({
+                "height": self.cp.tile_size,
+                "width": self.cp.tile_size,
+                "transform": tile_transform
+            })
+
+        # Open annotation raster inside the worker
+        with rasterio.open(annotation_path) as annotation:
+            # annotation_data = annotation.read(1, masked=True)
+            # Define tile transform
+            anno_transform = rasterio.windows.transform(window, annotation.transform)
+
+            tile_anno = annotation.read(window=window)
+
+            # Step 4: Generate the corresponding annotation for this tile
+            upsampled_annotation_meta = annotation.meta.copy()
+            upsampled_annotation_meta.update({
+                "driver": "GTiff",
+                "height": self.cp.tile_size,
+                "width": self.cp.tile_size,
+                "transform": anno_transform
+            })
+
+        # Save the tile
+        tile_filename = f"{session_name}_{tile_x}_{tile_y}.tif"
+        tile_output_path = Path(self.pm.refine_cropped_ortho_tif_folder, tile_filename)
+
+        with rasterio.open(tile_output_path, "w", **tile_meta) as dest:
+            dest.write(tile_ortho)
+
+        # Save the upsampled annotation file for this tile
+        annotation_filename = f"{session_name}_{tile_x}_{tile_y}.tif"
+        annotation_output_path = Path(self.pm.refine_annotation_tif_folder, annotation_filename)
+
+        with rasterio.open(annotation_output_path, "w", **upsampled_annotation_meta) as dest:
+            dest.write(tile_anno[0, :], 1)
+
+
+    def create_tiles_and_annotations_refine(self, uav_manager: UAVManager) -> bool:
+
+        print("\n\n------ [TILES - Create ortho and refine annotation tiles] ------\n")
+
+        len_cropped_folder = len(list(self.pm.refine_cropped_ortho_tif_folder.iterdir()))
+        len_upsampled_anno_folder = len(list(self.pm.refine_annotation_tif_folder.iterdir())) 
+
+        if len_cropped_folder == len_upsampled_anno_folder and len_cropped_folder != 0:
+            print("Tiff tiles and annotations already exist. we don't split.")
+            return False
+
+        if not self.pm.uav_prediction_refine_raster_folder.exists():
+            raise FileNotFoundError(f"Folder with refine predictions not found: {self.pm.uav_prediction_refine_raster_folder}")
+
+        for raster_anno in self.pm.uav_prediction_refine_raster_folder.iterdir():
+
+            print(f"\n-- Working with {raster_anno.name} --")
+
+            # Extract raster annotation place to get the correspondant uav orthophoto
+            ortho_name = raster_anno.name.replace("_merged_predictions.tif", ".tif")
+            session_name = ortho_name.replace("_ortho.tif", "")
+            ortho_path, ortho_crs, height, width = uav_manager.get_ortho_information_from_ortho_name(ortho_name)
+
+            self.align_annotation_to_ortho(raster_anno, ortho_path)
+
+            gdf_troudeau = gpd.read_file("config/emprise_lagoon.geojson")
+            gdf_troudeau = gdf_troudeau.to_crs(ortho_crs)
+            geom_troudeau = gdf_troudeau.iloc[0].geometry
+
+            tile_coords = [(session_name, x, y, ortho_path, geom_troudeau, raster_anno) 
+                for x in range(0, width - self.cp.tile_size + 1, self.cp.horizontal_step) 
+                for y in range(0, height - self.cp.tile_size + 1, self.cp.vertical_step)]
+            
+            # Process tiles in parallel
+            with Pool(NUM_WORKERS) as pool:
+                list(tqdm(pool.imap_unordered(self.process_tiles_refine_annotation, tile_coords), total=len(tile_coords), desc="Processing Tiles"))
+
+        return True

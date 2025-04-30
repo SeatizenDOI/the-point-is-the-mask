@@ -133,17 +133,29 @@ class ConfigParser:
     def clean_uav_session(self) -> bool:
         return bool(self.clean_dict.get("uav_session", False))
 
-    def clean_cropped_ortho_tif(self) -> bool:
-        return bool(self.clean_dict.get("cropped_ortho_tif", False))    
+    def clean_coarse_cropped_ortho_tif(self) -> bool:
+        return bool(self.clean_dict.get("coarse_cropped_ortho_tif", False))    
     
-    def clean_upscaling_annotation_tif(self) -> bool:
-        return bool(self.clean_dict.get("upscaling_annotation_tif", False))
+    def clean_coarse_upscaling_annotation_tif(self) -> bool:
+        return bool(self.clean_dict.get("coarse_upscaling_annotation_tif", False))
     
-    def clean_train(self) -> bool:
-        return bool(self.clean_dict.get("train", False))
+    def clean_coarse_train(self) -> bool:
+        return bool(self.clean_dict.get("coarse_train", False))
     
-    def clean_test(self) -> bool:
-        return bool(self.clean_dict.get("test", False))
+    def clean_coarse_test(self) -> bool:
+        return bool(self.clean_dict.get("coarse_test", False))
+
+    def clean_refine_cropped_ortho_tif(self) -> bool:
+        return bool(self.clean_dict.get("refine_cropped_ortho_tif", False))    
+    
+    def clean_refine_upscaling_annotation_tif(self) -> bool:
+        return bool(self.clean_dict.get("refine_upscaling_annotation_tif", False))
+    
+    def clean_refine_train(self) -> bool:
+        return bool(self.clean_dict.get("refine_train", False))
+    
+    def clean_refine_test(self) -> bool:
+        return bool(self.clean_dict.get("refine_test", False))
     
     ## Models.
     @property

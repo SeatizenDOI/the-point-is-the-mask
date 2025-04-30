@@ -13,7 +13,7 @@ class UAVManager:
         self.cp = cp
         self.pm = pm
 
-        self.ortho_information = {}
+        self.ortho_information, self.ortho_information_by_name = {}, {}
         self.default_crs_uav = None
         self.setup()
 
@@ -37,13 +37,13 @@ class UAVManager:
                 return
 
             # Create a symlink to the raster to avoid keep odm_orthophoto_name
-            symlink_path = Path(orthophoto_path.parent, f"./{session}_ortho.tif")
-            if symlink_path.is_symlink():
-                symlink_path.unlink()
-            symlink_path.symlink_to("./odm_orthophoto.tif")
+            ortho_symlink_path = Path(orthophoto_path.parent, f"./{session}_ortho.tif")
+            if ortho_symlink_path.is_symlink():
+                ortho_symlink_path.unlink()
+            ortho_symlink_path.symlink_to("./odm_orthophoto.tif")
 
             # Extract crs.
-            with rasterio.open(symlink_path) as ortho: 
+            with rasterio.open(ortho_symlink_path) as ortho: 
                 ortho_crs = ortho.crs
                 ortho_width = ortho.width
                 ortho_height = ortho.height
@@ -53,11 +53,17 @@ class UAVManager:
                 self.ortho_information[place_with_country_code] = []
             
             self.ortho_information[place_with_country_code].append((
-                symlink_path,
+                ortho_symlink_path,
                 ortho_crs,
                 ortho_height,
                 ortho_width
             ))
+            self.ortho_information_by_name[ortho_symlink_path.name] = [
+                ortho_symlink_path,
+                ortho_crs,
+                ortho_height,
+                ortho_width
+            ]
 
             self.default_crs_uav = ortho_crs
         
@@ -113,3 +119,6 @@ class UAVManager:
         df_orthos = pd.DataFrame(orthos)
         df_orthos.to_csv(self.pm.uav_csv, index=False)
 
+
+    def get_ortho_information_from_ortho_name(self, ortho_name: str) -> list:
+        return self.ortho_information_by_name.get(ortho_name, [])
