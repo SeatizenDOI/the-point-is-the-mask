@@ -5,7 +5,7 @@ CROPPED_ORTHO = "cropped_ortho"
 CROPPED_ORTHO_IMG = "cropped_ortho_img"
 PREDICTIONS_TIFF = "predictions_tiff"
 PREDICTIONS_PNG = "predictions_png"
-MERGED_PREDICTIONS = "merged_predictions_quantile99"
+MERGED_PREDICTIONS = "final_predictions_raster"
 
 
 class PathRasterManager:
@@ -14,17 +14,13 @@ class PathRasterManager:
 
         self.raster_path = raster_path
         self.output_folder = Path(output_folder)
-        self.cropped_ortho_folder = Path(output_folder, CROPPED_ORTHO, raster_path.stem)
-        self.cropped_ortho_img_folder = Path(output_folder, CROPPED_ORTHO_IMG, raster_path.stem)
-        self.predictions_tiff_base_folder = Path(output_folder, PREDICTIONS_TIFF, raster_path.stem, "base")
-        self.predictions_tiff_refine_folder = Path(output_folder, PREDICTIONS_TIFF, raster_path.stem, "refine")
-        self.predictions_png_base_folder = Path(output_folder, PREDICTIONS_PNG, raster_path.stem, "base")
+        self.tmp_folder = Path(output_folder, "tmp")
+        self.cropped_ortho_folder = Path(self.tmp_folder, CROPPED_ORTHO, raster_path.stem)
+        self.cropped_ortho_img_folder = Path(self.tmp_folder, CROPPED_ORTHO_IMG, raster_path.stem)
+        self.predictions_tiff_folder = Path(self.tmp_folder, PREDICTIONS_TIFF, raster_path.stem)
+        self.predictions_png_folder = Path(self.tmp_folder, PREDICTIONS_PNG, raster_path.stem)
         self.merged_predictions_folder = Path(output_folder, MERGED_PREDICTIONS)
         self.final_merged_tiff_file = Path(self.merged_predictions_folder, f"{raster_path.stem}_merged_predictions.tif")
-
-        self.asv_folder = Path(output_folder, "asv")
-        self.asv_sessions_folder = Path(self.asv_folder, "sessions")
-        self.asv_classification_folder = Path(self.asv_folder, "classification")
 
     def is_empty_cropped_folder(self) -> bool:
         return len(list(self.cropped_ortho_folder.iterdir())) == 0
@@ -33,41 +29,24 @@ class PathRasterManager:
         return len(list(self.cropped_ortho_img_folder.iterdir())) == 0
 
     def is_empty_predictions_tiff_folder(self) -> bool:
-        return len(list(self.predictions_tiff_base_folder.iterdir())) == 0
+        return len(list(self.predictions_tiff_folder.iterdir())) == 0
 
     def clean(self):
         """ Remvoe previous intermediate files and create path. """
         self.disk_optimize()
         self.create_path()
 
-
     def create_path(self) -> None:
         """ Create all path associate to the session. """
         print("*\t Create sub folder. ")
         self.cropped_ortho_folder.mkdir(exist_ok=True, parents=True)
         self.cropped_ortho_img_folder.mkdir(exist_ok=True, parents=True)
-        self.predictions_tiff_base_folder.mkdir(exist_ok=True, parents=True)
-        self.predictions_tiff_refine_folder.mkdir(exist_ok=True, parents=True)
-        self.predictions_png_base_folder.mkdir(exist_ok=True, parents=True)
+        self.predictions_tiff_folder.mkdir(exist_ok=True, parents=True)
+        self.predictions_png_folder.mkdir(exist_ok=True, parents=True)
         self.merged_predictions_folder.mkdir(exist_ok=True, parents=True)
-
 
     def disk_optimize(self) -> None:
         """ Remove all intermediate files"""
         print("*\t Remove all folder if exists. ")
-        if self.cropped_ortho_folder.exists():
-            shutil.rmtree(self.cropped_ortho_folder)
-        if self.cropped_ortho_img_folder.exists():
-            shutil.rmtree(self.cropped_ortho_img_folder)
-        tmp =  Path(self.output_folder, PREDICTIONS_TIFF, self.raster_path.stem)
-        if tmp.exists():
-            shutil.rmtree(tmp)
-
-
-    def remove_asv_folder(self) -> None:
-        """ Remove all asv sessions and recreate the parent folder """
-
-        if self.asv_folder.exists():
-            shutil.rmtree(self.asv_folder)
-        
-        self.asv_folder.mkdir(exist_ok=True, parents=True)
+        if self.tmp_folder.exists():
+            shutil.rmtree(self.tmp_folder)

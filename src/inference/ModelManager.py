@@ -15,7 +15,7 @@ from osgeo import gdal
 from ..utils.sam_refiner import sam_refiner
 from .PathRasterManager import PathRasterManager
 
-UNWANTED_VALUE = 6
+
 
 class ModelManager:
 
@@ -24,12 +24,24 @@ class ModelManager:
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = SegformerForSemanticSegmentation.from_pretrained(self.opt.path_segmentation_model).to(self.device)
-        self.processor = AutoImageProcessor.from_pretrained("nvidia/mit-b0", do_reduce_labels=False)
+        self.processor = AutoImageProcessor.from_pretrained("nvidia/mit-b0", do_reduce_labels=False, use_fast=False)
+        
+        
+        self.unwanted_value = max(self.model.config.id2label) + 1
+        self.label_sand_id = self.model.config.label2id.get("Sand", 5)
+        
+        if self.opt.use_sam_refiner:
+            self.setup_sam_refiner()
 
-        sam_checkpoint = "./models/sam_vit_h_4b8939.pth"
-        model_type = "vit_h"
 
-        self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
+    def setup_sam_refiner(self):
+
+        print("We are currently charging the SAM refiner model.")
+        path_sam_model = Path(self.opt.path_sam_model)
+        if not path_sam_model.exists() or not path_sam_model.is_file():
+            raise FileNotFoundError("[ERROR] We cannot use sam, please follow the readme to download the weight.")
+
+        self.sam = sam_model_registry["vit_h"](checkpoint=path_sam_model)
         self.sam.to(device=self.device)
 
 
@@ -40,11 +52,12 @@ class ModelManager:
             size = image.size
         return size, inputs
 
-    def fill_unlabelled_with_neighbors(self, mask, unlabelled_value=UNWANTED_VALUE):
+
+    def fill_unlabelled_with_neighbors(self, mask):
         """Fill unlabelled pixels with nearest neighbor values using distance transform."""
         
         # Create a mask of unlabelled values
-        mask_unlabelled = mask == unlabelled_value
+        mask_unlabelled = mask == self.unwanted_value
         if not np.any(mask_unlabelled):
             return mask
         
@@ -60,14 +73,21 @@ class ModelManager:
         return filled_mask
     
     def predict_sam(self, mask, image_path):
+        
+        # Get all sand value and replace its value by unwanted.
+        binary_mask = (mask == self.label_sand_id).astype(np.uint8)
+        mask[binary_mask == 1] = self.unwanted_value
 
-        binary_mask = (mask == 5).astype(np.uint8)
-        mask[binary_mask == 1] = UNWANTED_VALUE
+        # We refine the mask of the sand.
         refined_mask = sam_refiner(image_path, [binary_mask], self.sam)[0]
-        mask[refined_mask[0] == 1] = UNWANTED_VALUE  # Apply thresholding for segmentation
-        output_mask = self.fill_unlabelled_with_neighbors(mask, UNWANTED_VALUE)
-        output_mask[refined_mask[0] == 1] = 5
-        output_mask[output_mask == 6] = 0
+        mask[refined_mask[0] == 1] = self.unwanted_value  # Apply thresholding for segmentation
+
+        # For all zones without value, we try to find the nearest neighbours.
+        output_mask = self.fill_unlabelled_with_neighbors(mask)
+
+        # Finally we reapply our sand mask.
+        output_mask[refined_mask[0] == 1] = self.label_sand_id
+        output_mask[output_mask == self.unwanted_value] = 0 # background value
 
         return output_mask
 
@@ -76,7 +96,7 @@ class ModelManager:
         size, inputs = self.preprocess_image(image_path)
         
         with torch.no_grad():
-            outputs =self.model(**inputs)
+            outputs = self.model(**inputs)
 
         logits = outputs.logits  # Shape: (1, num_labels, height, width)
         mask_resized_bilinear = nn.functional.interpolate( # Segformer size is 1/4 need to resize to get mask on image
@@ -96,13 +116,14 @@ class ModelManager:
         
         for img_path in tqdm(session_images, desc="Performing inference on images"):
             mask = self.predict_mask(img_path)
-            # mask_sam = self.predict_sam(np.copy(mask), img_path)
+            
+            if self.opt.use_sam_refiner:
+                mask = self.predict_sam(np.copy(mask), img_path)
+            
             predicted_rasters.append((mask, img_path))
-            # predicted_rasters.append((mask, mask_sam, img_path))
 
         # Convert predictions to GeoTIFF
         for mask, img_path in tqdm(predicted_rasters, desc="Convert mask to tiff files"):
-        # for mask, mask_sam, img_path in tqdm(predicted_rasters, desc="Convert mask to tiff files"):
 
             corresponding_tiff = Path(path_manager.cropped_ortho_folder, f"{img_path.stem}.tif")
             if not corresponding_tiff.exists():
@@ -112,25 +133,13 @@ class ModelManager:
             with rasterio.open(corresponding_tiff) as src:
                 meta = src.meta.copy()
                 meta.update({"dtype": 'uint8', "count": 1, "nodata": 255}) 
-                
-            # output_tiff_path = Path(path_manager.predictions_tiff_refine_folder, f"{img_path.stem}_prediction.tif")
-            # with rasterio.open(output_tiff_path, 'w', **meta) as dst:
-            #     mask_sam = np.where(mask_sam == 0, 255, mask_sam)
-            #     dst.write(mask_sam, 1)
 
-            output_tiff_path = Path(path_manager.predictions_tiff_base_folder, f"{img_path.stem}_prediction.tif")
+
+            output_tiff_path = Path(path_manager.predictions_tiff_folder, f"{img_path.stem}_prediction.tif")
             with rasterio.open(output_tiff_path, 'w', **meta) as dst:
                 mask = np.where(mask == 0, 255, mask)
                 dst.write(mask, 1)    
 
-            # # Open the input TIFF file
-            # output_path = Path(path_manager.predictions_png_base_folder, f"{img_path.stem}_prediction.png")
 
-            # src_ds = gdal.Open(output_tiff_path)
-            # if src_ds:
-            #     # Read raster data as an array
-            #     raster_data = src_ds.ReadAsArray().astype(np.uint8)  # Ensure float values
-    
-            #     # Save as grayscale PNG (mode "L")
-            #     image = Image.fromarray(raster_data, mode="L")
-            #     image.save(output_path)    
+    def get_id2label(self) -> dict:
+        return self.model.config.id2label

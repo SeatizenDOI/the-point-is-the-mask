@@ -25,6 +25,8 @@ class PathManager:
         self.test_images_folder = Path(self.test_folder, "images")
         self.test_annotation_folder = Path(self.test_folder, "annotations")
 
+        self.uav_csv = Path(self.uav_folder, "uav_sessions.csv")
+
 
     def setup(self, cp: ConfigParser) -> None:
         print("------ [CLEANING] ------")

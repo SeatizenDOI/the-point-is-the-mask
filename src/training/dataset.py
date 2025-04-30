@@ -66,7 +66,7 @@ class DatasetManager:
 
     def attach_transforms(self) -> None:
         
-        processor = AutoImageProcessor.from_pretrained(self.cp.base_model_name, do_reduce_labels=True, use_fast=True)
+        processor = AutoImageProcessor.from_pretrained(self.cp.base_model_name, do_reduce_labels=True, use_fast=False)
 
         jitter = ColorJitter(brightness=0.25, contrast=0.25, saturation=0.25, hue=0.1)
 

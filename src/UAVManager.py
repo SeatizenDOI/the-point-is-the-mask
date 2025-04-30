@@ -1,4 +1,5 @@
 import rasterio
+import pandas as pd
 from pathlib import Path
 
 from .PathManager import PathManager
@@ -35,8 +36,14 @@ class UAVManager:
                 print(f"Cannot find raster for session {orthophoto_path}")
                 return
 
+            # Create a symlink to the raster to avoid keep odm_orthophoto_name
+            symlink_path = Path(orthophoto_path.parent, f"./{session}_ortho.tif")
+            if symlink_path.is_symlink():
+                symlink_path.unlink()
+            symlink_path.symlink_to("./odm_orthophoto.tif")
+
             # Extract crs.
-            with rasterio.open(orthophoto_path) as ortho: 
+            with rasterio.open(symlink_path) as ortho: 
                 ortho_crs = ortho.crs
                 ortho_width = ortho.width
                 ortho_height = ortho.height
@@ -46,7 +53,7 @@ class UAVManager:
                 self.ortho_information[place_with_country_code] = []
             
             self.ortho_information[place_with_country_code].append((
-                orthophoto_path,
+                symlink_path,
                 ortho_crs,
                 ortho_height,
                 ortho_width
@@ -94,3 +101,15 @@ class UAVManager:
             raise ValueError("Cannot get CRS for UAV")
 
         return self.default_crs_uav
+    
+    def generate_csv_uav_sessions_for_inference(self) -> None:
+        
+        orthos = []
+        for args in list(self.ortho_information.values()):
+            for path, crs, w, h in args:
+                path = Path(path)
+                orthos.append({"root_folder": path.parent, "ortho_name": path.name})
+        
+        df_orthos = pd.DataFrame(orthos)
+        df_orthos.to_csv(self.pm.uav_csv, index=False)
+

@@ -53,11 +53,12 @@ def setup_trainer(cp: ConfigParser, dataset_manager: DatasetManager, model_manag
         load_best_model_at_end=True,
         save_total_limit=1,
         logging_dir = Path(model_manager.output_dir, "logs"),
-        logging_steps=10,
+        logging_steps=1,
         report_to="tensorboard",
         push_to_hub=model_manager.push_to_hub(),
         fp16=torch.cuda.is_available(),  # Enable mixed precision if GPU is available
-        remove_unused_columns=False
+        remove_unused_columns=False,
+        save_safetensors=True
     )
 
     optimizer = torch.optim.Adam(

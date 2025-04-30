@@ -53,7 +53,7 @@ def get_list_rasters(opt) -> list[Path]:
     elif mode == Sources.CSV_SESSION:
         if src.exists():
             df_ses = pd.read_csv(src)
-            list_sessions = [Path(row.root_folder, row.session_name) for row in df_ses.itertuples(index=False)]
+            list_sessions = [Path(row.root_folder, row.ortho_name) for row in df_ses.itertuples(index=False)]
 
     return list_sessions
 

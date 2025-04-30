@@ -1,9 +1,7 @@
 import json
 import pyproj
 import numpy as np
-from PIL import Image
 from tqdm import tqdm
-from osgeo import gdal
 from pathlib import Path
 from argparse import Namespace
 from multiprocessing import Pool, cpu_count
@@ -16,8 +14,8 @@ from shapely.ops import transform
 from shapely.geometry import shape, box
 
 
+from ..utils.tiles_tools import convert_one_tiff_to_png
 from .PathRasterManager import PathRasterManager
-from ..utils.underwater_correction import apply_filter, get_color_filter_matrix
 
 NUM_WORKERS = max(1, cpu_count() - 2)  # Use available CPU cores, leaving some free
 
@@ -41,7 +39,7 @@ class TileManager:
                 self.geojson_data = json.load(f)
         
         if self.geojson_data == None:
-            raise FileNotFoundError("Cannot find geojson data.")
+            print("[WARNING] GeoJSON data - We don't crop the ortho with the geojson data due to no data.")
         
         self.geojson_crs = self.opt.geojson_crs
 
@@ -68,17 +66,18 @@ class TileManager:
         with rasterio.open(path_manager.raster_path) as ortho:
             raster_crs = ortho.crs.to_string()  # Get CRS of the raster
             
-            # Reproject GeoJSON geometries to match raster CRS
-            project = pyproj.Transformer.from_crs(self.geojson_crs, raster_crs, always_xy=True).transform
-            geoms = [transform(project, shape(feature["geometry"])) for feature in self.geojson_data["features"]]
-            
             window = Window(tile_x, tile_y, self.tile_size, self.tile_size)
             tile_transform = rasterio.windows.transform(window, ortho.transform)
 
-            # Check if tile intersects with reprojected GeoJSON geometries
-            tile_bounds = box(*array_bounds(self.tile_size, self.tile_size, tile_transform))
-            if not any(tile_bounds.within(geom) for geom in geoms):
-                return  # Skip tile if it does not overlap with the area
+            if self.geojson_data != None:
+                # Reproject GeoJSON geometries to match raster CRS
+                project = pyproj.Transformer.from_crs(self.geojson_crs, raster_crs, always_xy=True).transform
+                geoms = [transform(project, shape(feature["geometry"])) for feature in self.geojson_data["features"]]
+
+                # Check if tile intersects with reprojected GeoJSON geometries
+                tile_bounds = box(*array_bounds(self.tile_size, self.tile_size, tile_transform))
+                if not any(tile_bounds.within(geom) for geom in geoms):
+                    return  # Skip tile if it does not overlap with the area
 
             # Read raster data
             tile_ortho = ortho.read(window=window)
@@ -112,29 +111,8 @@ class TileManager:
     
     def convert_tiff_tiles_into_png(self, path_manager: PathRasterManager) -> None:
         print("*\t Convert ortho tiff tiles into png files.")
-        filepaths = [(filepath, path_manager.cropped_ortho_img_folder) for filepath in path_manager.cropped_ortho_folder.iterdir()]
-
-        gdal.DontUseExceptions()
+        ucc = bool(self.opt.underwater_color_correction)
+        filepaths = [(filepath, path_manager.cropped_ortho_img_folder, ucc) for filepath in path_manager.cropped_ortho_folder.iterdir()]
 
         with Pool(processes=cpu_count()) as pool:
-            list(tqdm(pool.imap(self.convert_one_tiff_to_png, filepaths), total=len(filepaths), desc=f"Processing {path_manager.cropped_ortho_folder.name}"))
-
-
-    def convert_one_tiff_to_png(self, filepath_output: tuple[Path, Path]) -> None:
-        filepath, output_dir = filepath_output
-        png_output_path = Path(output_dir, f'{filepath.stem}.png')
-        
-        with gdal.Open(str(filepath)) as src_ds:
-
-            raster_data = src_ds.ReadAsArray()
-            if raster_data.ndim == 3:
-                image = Image.fromarray(np.transpose(raster_data[:3], (1, 2, 0)).astype(np.uint8), mode="RGB")
-                if self.opt.underwater_color_correction:
-                    pixels = np.array(image, dtype=np.uint8)
-                    height, width = pixels.shape[:2]  # Get image dimensions
-                    filter = get_color_filter_matrix(pixels, width, height)
-                    img_out = apply_filter(pixels, filter)
-                    image = Image.fromarray(img_out, "RGB")
-            else:
-                raise ValueError(f"Unexpected image format: {raster_data.shape}")
-            image.save(png_output_path)
+            list(tqdm(pool.imap(convert_one_tiff_to_png, filepaths, ), total=len(filepaths), desc=f"Processing {path_manager.cropped_ortho_folder.name}"))

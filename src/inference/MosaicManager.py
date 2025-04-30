@@ -10,39 +10,26 @@ from rasterio.windows import from_bounds
 
 from .PathRasterManager import PathRasterManager
 
-MAX_PIXEL_PER_RASTER = 800000000
-
 class MosaicManager:
-    def __init__(self, path_manager: PathRasterManager):
+    def __init__(self, path_manager: PathRasterManager, id2label: dict, max_pixels_by_slice: int = 800000000):
         self.tmp_rasters_slice = []
         self.path_manager = path_manager
+        self.max_pixels_by_slice = max_pixels_by_slice
+        self.id2label = id2label
 
-        self.predictions_tiff_files = sorted(list(self.path_manager.predictions_tiff_base_folder.iterdir()))
+        self.predictions_tiff_files = sorted(list(self.path_manager.predictions_tiff_folder.iterdir()))
         
         with rasterio.open(self.predictions_tiff_files[0]) as src:
             self.crs = src.crs
 
-        self.global_min, self.global_max, self.num_classes  = np.inf, -np.inf, 0
+        self.global_min, self.global_max, self.num_classes  = min(id2label), max(id2label), len(id2label)
+        print(f"✅ Detected class range: {self.global_min} to {self.global_max} ({self.num_classes} classes)")
 
 
-    def build_raster(self):
-        self.get_min_max_global()
+    def build_raster(self, ):
         tiles_with_transforms = self.create_intermediate_subraster()
         self.populate_and_save_subraster(tiles_with_transforms)
         self.create_final_rasters()
-
-
-    def get_min_max_global(self):
-        # !FIXME Remove this function by reading config file when model will be on hugging face. 
-        # for src_path in tqdm(self.predictions_tiff_files, desc="Analyzing raster values", unit="file"):
-        #     with rasterio.open(src_path) as src:
-        #         tile = src.read(1)
-        #     self.global_min = min(self.global_min, tile.min())
-        #     self.global_max = max(self.global_max, tile.max())
-        self.global_min = 1
-        self.global_max = 5
-        self.num_classes = int(self.global_max - self.global_min + 1)
-        print(f"✅ Detected class range: {self.global_min} to {self.global_max} ({self.num_classes} classes)")
 
 
     def create_intermediate_subraster(self) -> list:
@@ -52,7 +39,7 @@ class MosaicManager:
         
         # Get the total size of the mosaic
         height, width = origin_mosaic.shape[1], origin_mosaic.shape[2]
-        intermediate_tile_height = MAX_PIXEL_PER_RASTER // width
+        intermediate_tile_height = self.max_pixels_by_slice // width
         nb_slice = math.ceil(height / intermediate_tile_height)
 
         print(f"The final raster size is {origin_mosaic.shape}. It will be cut by {nb_slice} slice of {intermediate_tile_height} pixels.")
@@ -70,6 +57,7 @@ class MosaicManager:
             mosaic_tiles.append((tile, new_transform))  # Store tile with position
         
         return mosaic_tiles
+
 
     def populate_and_save_subraster(self, tiles_with_transforms: list):
 

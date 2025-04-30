@@ -20,28 +20,36 @@ def parse_args() -> Namespace:
 
     # Path of input.
     parser.add_argument("-pfol", "--path_folder", default="input", help="Path to folder of session")
-    parser.add_argument("-pses", "--path_session", default="input/20231202_REU-TROU-DEAU_UAV-01_01_ortho.tif", help="Path to the session")
+    parser.add_argument("-pses", "--path_session", default="input/20231208_REU-ST-LEU_UAV-01_03_ortho.tif", help="Path to the session")
     parser.add_argument("-pcsv", "--path_csv_file", default=None, help="Path to the csv file")
 
     # Model arguments.
-    parser.add_argument("-psm", "--path_segmentation_model", default="segmentation_model/quantile99-segmentation_model-ce0-dice1/checkpoint-5358", help="Path to semgentation model, currently only in local.") # TODO add remote parse
-    parser.add_argument("-pgeo", "--path_geojson", default="config/emprise_lagoon.geojson", help="Path to geojson to crop ortho inside area.")
+    # parser.add_argument("-psm", "--path_segmentation_model", default="models/quantile99-segmentation_model-ce0-dice1/checkpoint-5358", help="Path to semgentation model, currently only in local.") # TODO add remote parse
+    parser.add_argument("-psm", "--path_segmentation_model", default="models/SegForCoral-2025_04_30_39022-bs16_coarse", help="Path to semgentation model, currently only in local.") # TODO add remote parse
+    parser.add_argument("-pgeo", "--path_geojson", default="", help="Path to geojson to crop ortho inside area.")
     parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0.5, help="Horizontal overlap between tiles.")
     parser.add_argument("-vo", "--vertical_overlap", type=float, default=0.5, help="Vertical overlap between tiles.")
     parser.add_argument("-ts", "--tile_size", type=int, default=512, help="Split Orthophoto into tiles.")
     parser.add_argument("--geojson_crs", default="EPSG:4326", help="Defaulting to WGS84 (likely for GeoJSON)")
     parser.add_argument("-ucc", "--underwater_color_correction", action="store_true", help="Perform color corection on water.")
 
+    # SAM arguments.
+    parser.add_argument("-sam", "--use_sam_refiner", action="store_true", help="Refine prediction with SAMRefiner.")
+    parser.add_argument("-psam", "--path_sam_model", default="./models/sam_base_model/sam_vit_h_4b8939.pth", help="Path to SAM refiner model.")
+
     # Output.
-    parser.add_argument("-po" , "--path_output", default="./output", help="Path of output")
+    parser.add_argument("-po" , "--path_output", default="./output2", help="Path of output")
 
     # Optional arguments.
     parser.add_argument("-is", "--index_start", default="0", help="Choose from which index to start")
     parser.add_argument("-c", "--clean", action="store_true", help="Delete all previous file")
+    parser.add_argument("--max_pixels_by_slice_of_rasters", type=int, default=800000000, help="Max pixels number into intermediate rasters to avoid RAM overload.")
 
     return parser.parse_args()
 
 def main(opt: Namespace) -> None:
+
+    print("\n\n------ [INFERENCE - Initialize managers.] ------\n")
 
     tile_manager = TileManager(opt)
     model_manager = ModelManager(opt)
@@ -71,8 +79,8 @@ def main(opt: Namespace) -> None:
             if opt.clean or path_manager.is_empty_predictions_tiff_folder():
                 model_manager.inference(path_manager)
             
-            mosaic_manager = MosaicManager(path_manager)
-            mosaic_manager.build_raster()
+            mosaic_manager = MosaicManager(path_manager, opt.max_pixels_by_slice_of_rasters)
+            mosaic_manager.build_raster(model_manager.get_id2labels())
             
         except Exception as e:
             print(traceback.format_exc(), end="\n\n")

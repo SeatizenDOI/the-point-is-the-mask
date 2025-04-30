@@ -12,8 +12,6 @@ from src.utils.lib_tools import print_header
 from src.training.main import main_launch_training
 from src.training.training_step import TrainingStep
 
-
-from inference import parse_args as inference_parse_args
 from inference import main as inference_main
 
 
@@ -52,25 +50,27 @@ def main(opt: Namespace) -> None:
         tile_manager.convert_tiff_to_png_annotations(test_images_list)
         tile_manager.verify_if_annotation_tiles_contains_valid_values(asv_manager.get_classes_mapping())
 
+    uav_manager.generate_csv_uav_sessions_for_inference()
+
     # First training.
     first_model_path = main_launch_training(cp, pm.train_folder, asv_manager.get_classes_mapping(), TrainingStep.COARSE)
 
     # Inference with segrefiner.
     inference_args = Namespace(
-        enable_folder=False, enable_session=True, enable_csv=False, 
-        path_folder='input', 
-        path_session='input/20231202_REU-TROU-DEAU_UAV-01_01_ortho.tif', 
-        path_csv_file=None, 
-        path_segmentation_model=first_model_path, 
-        path_geojson='config/emprise_lagoon.geojson', 
+        enable_folder=False, enable_session=False, enable_csv=True, 
+        path_folder=None, path_session=None, path_csv_file=pm.uav_csv, 
+        path_segmentation_model="./models/quantile99-segmentation_model-ce0-dice1/checkpoint-5358", 
+        path_geojson="", 
         horizontal_overlap=0.5,   
         vertical_overlap=0.5, 
         tile_size=512, 
         geojson_crs='EPSG:4326', 
         underwater_color_correction=False, 
-        path_output='./output2', 
+        path_output='./data', 
         index_start='0', 
-        clean=True
+        clean=True,
+        use_sam_refiner=False, 
+        path_sam_model='./models/sam_base_model/sam_vit_h_4b8939.pth'
     )
     inference_main(inference_args)
 

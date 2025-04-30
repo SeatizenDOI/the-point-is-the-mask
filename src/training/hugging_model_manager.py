@@ -18,7 +18,7 @@ class ModelManager():
 
         self.resume_from_checkpoint, self.latest_checkpoint = None, None
 
-        self.model, self.output_dir = None, None
+        self.model, self.output_dir, self.model_name_with_username = None, None, None
 
 
     def push_to_hub(self) -> bool:
@@ -55,11 +55,15 @@ class ModelManager():
             self.resume_from_checkpoint = self.latest_checkpoint
             
 
-    def setup_model(self, num_labels: int) -> None:
+    def setup_model(self, id2labels: dict) -> None:
+
+        label2id = {v: k for k, v in id2labels.items()}
     
         self.model = SegformerForSemanticSegmentation.from_pretrained(
             self.cp.base_model_name,
-            num_labels=num_labels,  # Single channel output for fuzzy mask prediction
+            id2label=id2labels,
+            label2id=label2id,
+            num_labels=len(id2labels),  # Single channel output for fuzzy mask prediction
             ignore_mismatched_sizes=True  # Allow resizing output layers
         ).to(self.device)
     

@@ -18,10 +18,9 @@ from .ConfigParser import ConfigParser
 from .PathManager import PathManager
 from .UAVManager import UAVManager
 
-from .utils.underwater_correction import apply_filter, get_color_filter_matrix
+from .utils.tiles_tools import convert_one_tiff_to_png
 
 NUM_WORKERS = max(1, cpu_count() - 2)  # Use available CPU cores, leaving some free
-gdal.DontUseExceptions()
 
 class TileManager:
 
@@ -241,7 +240,7 @@ class TileManager:
             all_drone_test_polygon.append(drone_test_polygon)
         drone_test_footprint = unary_union(all_drone_test_polygon)
         
-        filepaths, test_images_list = [], []
+        args, test_images_list = [], []
         for file in self.pm.cropped_ortho_tif_folder.iterdir():
             if file.suffix.lower() != ".tif": continue
 
@@ -251,11 +250,11 @@ class TileManager:
                 test_images_list.append(file.stem)
                 
             output_dir = self.pm.test_images_folder if file.stem in test_images_list else self.pm.train_images_folder
-            filepaths.append((file, output_dir))
+            args.append((file, output_dir, self.cp.use_color_correction))
         
 
         with Pool(processes=cpu_count()) as pool:
-            list(tqdm(pool.imap(self.convert_one_tiff_to_png, filepaths), total=len(filepaths), desc=f"Processing {self.pm.cropped_ortho_tif_folder.name}"))
+            list(tqdm(pool.imap(convert_one_tiff_to_png, args), total=len(args), desc=f"Processing {self.pm.cropped_ortho_tif_folder.name}"))
 
         
         return test_images_list
@@ -264,46 +263,22 @@ class TileManager:
     def convert_tiff_to_png_annotations(self, test_images_list: list) -> None:
         print("\n\n------ [TILES - Convert anno tiff tiles to png] ------\n")
 
-        filepaths = []
+        args = []
         for file in self.pm.upsampled_annotation_tif_folder.iterdir():
             if file.suffix.lower() != ".tif": continue
 
             # Determine output folder based on test session
             output_dir = self.pm.test_annotation_folder if file.stem in test_images_list else self.pm.train_annotation_folder
 
-            filepaths.append((file, output_dir))
+            args.append((file, output_dir, self.cp.use_color_correction))
 
         with Pool(processes=cpu_count()) as pool:
-            list(tqdm(pool.imap(self.convert_one_tiff_to_png, filepaths), total=len(filepaths), desc=f"Processing {self.pm.upsampled_annotation_tif_folder.name}"))
-
-
-    def convert_one_tiff_to_png(self, filepath_and_output_dir: tuple[Path, Path]) -> None:
-        filepath, output_dir = filepath_and_output_dir
-        png_output_path = Path(output_dir, f'{filepath.stem}.png')
-        
-        with gdal.Open(str(filepath)) as src_ds:
-
-            raster_data = src_ds.ReadAsArray()
-            if raster_data.ndim == 3:
-                image = Image.fromarray(np.transpose(raster_data[:3], (1, 2, 0)).astype(np.uint8), mode="RGB")
-                if self.cp.use_color_correction:
-                    pixels = np.array(image, dtype=np.uint8)
-                    height, width = pixels.shape[:2]  # Get image dimensions
-                    filter = get_color_filter_matrix(pixels, width, height)
-                    img_out = apply_filter(pixels, filter)
-                    image = Image.fromarray(img_out, "RGB")
-            elif raster_data.ndim == 2:
-                image = Image.fromarray(raster_data.astype(np.uint8), mode="L")
-            else:
-                raise ValueError(f"Unexpected image format: {raster_data.shape}")
-            image.save(png_output_path)
+            list(tqdm(pool.imap(convert_one_tiff_to_png, args), total=len(args), desc=f"Processing {self.pm.upsampled_annotation_tif_folder.name}"))
     
 
     def verify_if_annotation_tiles_contains_valid_values(self, classes_mapping: dict) -> None:
 
         print("\n\n------ [TILES - Annotations check values] ------\n")
-
-
         annotation_files = list(self.pm.train_annotation_folder.glob("*.png"))
         classes = [int(k) for k in classes_mapping.keys()]
         min_class, max_class = min(classes), max(classes)
