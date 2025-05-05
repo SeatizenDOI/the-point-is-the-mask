@@ -1,0 +1,12 @@
+- [X] Comprendre pourquoi le tensorsafe est dans le checkpoint et à la racine du modèle.
+- [X] Utiliser use_fast
+- [] Tester un modèle plus gros
+- [X] Faire les tests depuis un dossier de session
+- [X] POur l'inférence ajouter un dossier tmp et mettre les résultats à la predictions rasters.
+- [X] Ajouter id2labels dans le models
+- [] Demander à matteo son ign shp
+- [] Demander à matteo pourquoi on split le dataset en test alors qu'on a dejà une zone dédié spécialement ?
+- [] Ajouter la possibilité de repartir d'un modèle existant
+- [] Refaire l'environnement
+- [] Refaire une passe de typage et de commentaire
+- [] Deamndé à matteo son masque d'annotation

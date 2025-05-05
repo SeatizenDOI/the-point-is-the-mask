@@ -48,20 +48,23 @@ def main(opt: Namespace) -> None:
     if tile_manager.create_tiles_and_annotations_coarse(uav_manager):
         test_images_list = tile_manager.convert_tiff_to_png(uav_manager.get_default_crs(), TrainingStep.COARSE)
         tile_manager.convert_tiff_to_png_annotations(test_images_list, TrainingStep.COARSE)
-        tile_manager.verify_if_annotation_tiles_contains_valid_values(asv_manager.get_classes_mapping(), TrainingStep.REFINE)
+        tile_manager.verify_if_annotation_tiles_contains_valid_values(asv_manager.get_classes_mapping(), TrainingStep.COARSE)
 
     uav_manager.generate_csv_uav_sessions_for_inference()
 
     # First training.
-    # first_model_path = main_launch_training(cp, pm.coarse_train_folder, asv_manager.get_classes_mapping(), TrainingStep.COARSE)
+    if cp.model_path_coarse == None:
+        first_model_path = main_launch_training(cp, pm.coarse_train_folder, asv_manager.get_classes_mapping(), TrainingStep.COARSE)
+    else:
+        first_model_path = cp.model_path_coarse
 
     # Inference with segrefiner.
-    if len(list(pm.uav_prediction_refine_raster_folder.iterdir())) == 0:
+    if not pm.uav_prediction_refine_raster_folder.exists() or len(list(pm.uav_prediction_refine_raster_folder.iterdir())) == 0:
         inference_args = Namespace(
             enable_folder=False, enable_session=False, enable_csv=True, 
             path_folder=None, path_session=None, path_csv_file=pm.uav_csv, 
-            path_segmentation_model="./models/quantile99-segmentation_model-ce0-dice1/checkpoint-5358", 
-            path_geojson="config/emprise_stleu_zat.geojson", 
+            path_segmentation_model=first_model_path, 
+            path_geojson="config/boundary_ign_troudeau/boundary_ign_troudeau.geojson", 
             horizontal_overlap=0.5,   
             vertical_overlap=0.5, 
             tile_size=512, 
@@ -69,8 +72,8 @@ def main(opt: Namespace) -> None:
             underwater_color_correction=False, 
             path_output='./data', 
             index_start='0', 
-            clean=False,
-            use_sam_refiner=False, 
+            clean=True,
+            use_sam_refiner=True, 
             path_sam_model='./models/sam_base_model/sam_vit_h_4b8939.pth',
             max_pixels_by_slice_of_rasters=800000000
         )
@@ -84,11 +87,13 @@ def main(opt: Namespace) -> None:
         tile_manager.convert_tiff_to_png_annotations(test_images_list, TrainingStep.REFINE)
         tile_manager.verify_if_annotation_tiles_contains_valid_values(asv_manager.get_classes_mapping(), TrainingStep.REFINE)
 
-    # # Second training
-    main_launch_training(cp, pm.refine_train_folder, asv_manager.get_classes_mapping(), TrainingStep.REFINE)
+    # Second training.
+    if cp.model_path_refine == None:
+        main_launch_training(cp, pm.refine_train_folder, asv_manager.get_classes_mapping(), TrainingStep.REFINE)
 
 
     # Plot result.
+    print("\n\n------ [TEST - ] ------\n")
 
 
 

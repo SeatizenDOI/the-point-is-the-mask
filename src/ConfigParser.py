@@ -206,6 +206,13 @@ class ConfigParser:
         return t.get("resume_from", "")
 
     @property
+    def model_path_coarse(self) -> Path | None:
+        t = self.train_dict.get("coarse_training", None)
+        if t == None: return None
+        p = t.get("model_path", None)
+        return Path(p) if p != None else None
+
+    @property
     def resume_refine_training(self) -> str | None:
         t = self.train_dict.get("refine_training", None)
         if t == None: return None
@@ -218,3 +225,10 @@ class ConfigParser:
         if t == False: return False
 
         return t.get("upload_on_huggingface", False)
+
+    @property
+    def model_path_refine(self) -> str | None:
+        t = self.train_dict.get("refine_training", None)
+        if t == None: return None
+        p = t.get("model_path", None)
+        return Path(p) if p != None else None
