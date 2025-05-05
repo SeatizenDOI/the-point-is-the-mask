@@ -1,17 +1,16 @@
-from pathlib import Path
 import json
-
-import transformers
-import tokenizers
-import datasets
 import torch
+import datasets
+import tokenizers
+import transformers
+from pathlib import Path
+
 
 from .hugging_model_manager import ModelManager
-from .dataset import DatasetManager
 from ..ConfigParser import ConfigParser
 
 
-def generate_model_card(data_paths: list[Path], model_manager: ModelManager, dataset_manager: DatasetManager) -> None:
+def generate_model_card(data_paths: list[Path], model_manager: ModelManager) -> None:
 
     data = {}
     for data_path in data_paths:
@@ -22,8 +21,6 @@ def generate_model_card(data_paths: list[Path], model_manager: ModelManager, dat
             data[data_path.stem] = json.load(file)
   
     markdown_training_results = format_training_results_to_markdown(data["trainer_state"])
-    test_results_metrics_markdown = extract_test_results(data["test_results"])
-    # markdown_counts = dataset_manager.counts_df.to_markdown(index=False)
     hyperparameters_markdown = format_hyperparameters_to_markdown(data["config"], data["all_results"])
     framework_versions_markdown = format_framework_versions_to_markdown()  
 
@@ -41,9 +38,7 @@ model-index:
   results: []
 ---
 
-{model_manager.model_name} is a fine-tuned version of [{model_manager.cp.base_model_name}](https://huggingface.co/{model_manager.cp.base_model_name}). It achieves the following results on the test set:
-
-{test_results_metrics_markdown}
+{model_manager.model_name} is a fine-tuned version of [{model_manager.cp.base_model_name}](https://huggingface.co/{model_manager.cp.base_model_name}).
 
 ---
 
@@ -58,10 +53,6 @@ model-index:
 # Intended uses & limitations
 You can use the raw model for classify diverse marine species, encompassing coral morphotypes classes taken from the Global Coral Reef Monitoring Network (GCRMN), habitats classes and seagrass species.
 
----
-
-# Training and evaluation data
-Details on the estimated number of images for each class are given in the following table:
 
 
 ---
@@ -124,12 +115,6 @@ def format_training_results_to_markdown(trainer_state: dict) -> str:
     
     return markdown_table
 
-
-def extract_test_results(test_results: dict) -> str:
-    
-    markdown = f"\n- Loss: {test_results.get('eval_loss', test_results.get('test_loss', 0.0)):.4f}"
-    
-    return markdown
 
 def format_hyperparameters_to_markdown(config, all_results):
     epoch = all_results.get("epoch", None)

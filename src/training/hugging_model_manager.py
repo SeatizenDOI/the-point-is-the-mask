@@ -31,7 +31,6 @@ class ModelManager():
         now = datetime.now()
         elapsed_second_in_day = now.hour * 3600 + now.minute * 60 + now.second
         today = f'{date.today().strftime("%Y_%m_%d")}_{elapsed_second_in_day}'
-        # test_data = "prova_" if self.cp.test_data else ""
         training_type = "_coarse" if self.training_step == TrainingStep.COARSE else "_refine"
 
         self.model_name = f"{self.cp.model_name}-{today}-bs{self.cp.batch_size}{training_type}"[0:96] # Add a limit for huggingface

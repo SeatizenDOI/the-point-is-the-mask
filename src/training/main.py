@@ -9,7 +9,6 @@ from .hugging_model_manager import ModelManager
 from ..ConfigParser import ConfigParser
 from ..utils.lib_tools import print_gpu_is_used
 from .model_card_generator import generate_model_card, save_hyperparameters_to_config
-from .evaluation import evaluate_and_save
 
 
 
@@ -63,23 +62,20 @@ def main_launch_training(cp: ConfigParser, path_to_image: Path, class_mapping: d
     trainer.save_model(model_manager.output_dir)
 
 
-    # For the first training, we don't care about test set and generate model card, instead return model name.
+    # For the first training, we don't care about generate model card, instead return model name.
     if training_step == TrainingStep.COARSE:
         return model_manager.output_dir
-    
-    print("\n\n------ [TRAIN - Evaluating model on test set] ------\n")
-    evaluate_and_save(trainer, dataset_manager.test_ds, model_manager.push_to_hub())
 
     # Save hyperparameters.
     save_hyperparameters_to_config(model_manager.output_dir,cp)
 
     # Generate model card.
-    files = ['train_results.json', 'test_results.json', 'trainer_state.json', 'all_results.json', 'config.json', 'transforms.json']
+    files = ['train_results.json', 'trainer_state.json', 'all_results.json', 'config.json', 'transforms.json']
     data_paths = [Path(model_manager.output_dir, file) for file in files]
     
     # print("info : \n")
     print("\n\n------ [TRAIN - Generating model card] ------\n")
-    generate_model_card(data_paths, model_manager, dataset_manager)
+    generate_model_card(data_paths, model_manager)
 
     # Send data to hugging face if needed.
     if model_manager.push_to_hub(): return 
