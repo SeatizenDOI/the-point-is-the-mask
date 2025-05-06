@@ -44,6 +44,10 @@ class PathManager:
         self.uav_csv = Path(self.uav_folder, "uav_sessions.csv")
         self.uav_prediction_refine_raster_folder = Path(self.output_path, "final_predictions_raster")
 
+        # Evalutation
+        self.eval_folder = Path(self.output_path, "eval")
+        self.eval_tmp_folder = Path(self.eval_folder, "temp")
+        self.eval_prediction_on_annotation_zone = Path(self.eval_folder, "prediction_on_annotation_zone")
 
 
     def setup(self, cp: ConfigParser) -> None:
@@ -91,6 +95,10 @@ class PathManager:
         if cp.clean_refine_test() and self.refine_test_folder.exists():
             print(f"* Delete {self.refine_test_folder}")
             shutil.rmtree(self.refine_test_folder)
+        
+        if cp.clean_eval() and self.eval_folder.exists():
+            print(f"* Delete {self.eval_folder}")
+            shutil.rmtree(self.eval_folder)
 
         print(f"* Create all subfolders.")
         self.asv_coarse_folder.mkdir(exist_ok=True, parents=True)
@@ -108,3 +116,7 @@ class PathManager:
         self.refine_train_annotation_folder.mkdir(exist_ok=True, parents=True)
         self.refine_test_images_folder.mkdir(exist_ok=True, parents=True)
         self.refine_test_annotation_folder.mkdir(exist_ok=True, parents=True)
+        self.eval_folder.mkdir(exist_ok=True, parents=True)
+        self.eval_prediction_on_annotation_zone.mkdir(exist_ok=True, parents=True)
+
+

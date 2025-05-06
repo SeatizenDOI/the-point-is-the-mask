@@ -10,3 +10,4 @@
 - [] Refaire l'environnement
 - [] Refaire une passe de typage et de commentaire
 - [] Deamndé à matteo son masque d'annotation
+- [] Inférence => refacto le geojson into crs du raster

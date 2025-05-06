@@ -14,7 +14,8 @@
             "refine_cropped_ortho_tif": false,
             "refine_upscaling_annotation_tif": false,
             "refine_train": false,
-            "refine_test": false
+            "refine_test": false,
+            "eval": false
         }
     },
     "setup": {
@@ -24,9 +25,10 @@
             "20240322_REU-TROU-DEAU_ASV-1_03", "20240322_REU-TROU-DEAU_ASV-1_02"
         ],
         "list_uav_sessions": [
-            "20231202_REU-TROU-DEAU_UAV-01_01"
+            "20231202_REU-TROU-DEAU_UAV-01_01", "20231208_REU-ST-LEU_UAV-01_03"
         ],
-        "drone_test_zone_polygon_path": ["config/drone_test_polygon_troudeau.geojson"],
+        "drone_test_zone_polygon_path": [["config/drone_test_polygon_troudeau.geojson", "config/annotation_mask_troudeau.png"], 
+        ["config/drone_test_polygon_stleu.geojson", "config/annotation_mask_stleu.png"]],
         "list_labels_asv_predictions": ["Acropore_branched", "Acropore_tabular", "Sand", "No_acropore_massive", "No_acropore_sub_massive"],
         "tiles": {
             "tile_size": 512,
@@ -49,11 +51,11 @@
             "early_stopping_patience": 10
         },
         "coarse_training": {
-            "model_path": null,
+            "model_path": "models/SegForCoral-2025_05_05_53320-bs16_coarse",
             "resume_from": null
         },
         "refine_training": {
-            "model_path": null,
+            "model_path": "models/SegForCoral-2025_05_05_72001-bs16_refine",
             "resume_from": null,
             "upload_on_huggingface": true
         }

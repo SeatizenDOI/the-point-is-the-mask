@@ -156,6 +156,9 @@ class ConfigParser:
     
     def clean_refine_test(self) -> bool:
         return bool(self.clean_dict.get("refine_test", False))
+
+    def clean_eval(self) -> bool:
+        return bool(self.clean_dict.get("eval", False))
     
     ## Models.
     @property
@@ -227,7 +230,7 @@ class ConfigParser:
         return t.get("upload_on_huggingface", False)
 
     @property
-    def model_path_refine(self) -> str | None:
+    def model_path_refine(self) -> Path | None:
         t = self.train_dict.get("refine_training", None)
         if t == None: return None
         p = t.get("model_path", None)

@@ -1,4 +1,3 @@
-
 from argparse import Namespace, ArgumentParser
 
 from src.ConfigParser import ConfigParser
@@ -13,6 +12,8 @@ from src.training.main import main_launch_training
 from src.utils.training_step import TrainingStep
 
 from inference import main as inference_main
+
+from src.evaluation.main_evaluation import perform_evalutation
 
 
 def parse_args() -> Namespace:
@@ -89,12 +90,12 @@ def main(opt: Namespace) -> None:
 
     # Second training.
     if cp.model_path_refine == None:
-        main_launch_training(cp, pm.refine_train_folder, asv_manager.get_classes_mapping(), TrainingStep.REFINE)
-
+        second_model_path = main_launch_training(cp, pm.refine_train_folder, asv_manager.get_classes_mapping(), TrainingStep.REFINE)
+    else:
+        second_model_path = cp.model_path_refine
 
     # Plot result.
-    print("\n\n------ [TEST - ] ------\n")
-
+    perform_evalutation(pm, cp, second_model_path)
 
 
 if __name__ == "__main__":

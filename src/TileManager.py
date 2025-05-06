@@ -219,7 +219,7 @@ class TileManager:
         
         # From drone zone, we try to extract images
         all_drone_test_polygon = []
-        for drone_test_zone in self.cp.drone_zone_polygon_path:
+        for drone_test_zone, _ in self.cp.drone_zone_polygon_path:
 
             # Load the boundary shapefile as a GeoDataFrame
             drone_test_polygon_gpd = gpd.read_file(drone_test_zone)
@@ -459,7 +459,7 @@ class TileManager:
 
             self.align_annotation_to_ortho(raster_anno, ortho_path)
 
-            gdf_troudeau = gpd.read_file("config/boundary_ign_troudeau.geojson")
+            gdf_troudeau = gpd.read_file("config/boundary_ign_troudeau/boundary_ign_troudeau.geojson")
             gdf_troudeau = gdf_troudeau.to_crs(ortho_crs)
             geom_troudeau = gdf_troudeau.iloc[0].geometry
 

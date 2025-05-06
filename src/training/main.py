@@ -12,7 +12,7 @@ from .model_card_generator import generate_model_card, save_hyperparameters_to_c
 
 
 
-def main_launch_training(cp: ConfigParser, path_to_image: Path, class_mapping: dict, training_step: TrainingStep) -> Path | None:
+def main_launch_training(cp: ConfigParser, path_to_image: Path, class_mapping: dict, training_step: TrainingStep) -> Path:
     """
         cp: From 
         path_to_image: Path to a folder with a subfolder images and a subfolder annotations
@@ -82,4 +82,4 @@ def main_launch_training(cp: ConfigParser, path_to_image: Path, class_mapping: d
     print("\n\n------ [TRAIN - Send data to huggingface] ------\n")
     model_manager.send_data_to_hugging_face()
 
-
+    return model_manager.output_dir
