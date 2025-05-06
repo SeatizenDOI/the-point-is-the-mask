@@ -27,8 +27,10 @@
         "list_uav_sessions": [
             "20231202_REU-TROU-DEAU_UAV-01_01", "20231208_REU-ST-LEU_UAV-01_03"
         ],
-        "drone_test_zone_polygon_path": [["config/drone_test_polygon_troudeau.geojson", "config/annotation_mask_troudeau.png"], 
-        ["config/drone_test_polygon_stleu.geojson", "config/annotation_mask_stleu.png"]],
+        "drone_test_zone_polygon_path": [
+            ["config/drone_test_polygon_troudeau.geojson", "config/annotation_mask_troudeau.png"], 
+            ["config/drone_test_polygon_stleu.geojson", "config/annotation_mask_stleu.png"]
+        ],
         "list_labels_asv_predictions": ["Acropore_branched", "Acropore_tabular", "Sand", "No_acropore_massive", "No_acropore_sub_massive"],
         "tiles": {
             "tile_size": 512,
@@ -59,5 +61,10 @@
             "resume_from": null,
             "upload_on_huggingface": true
         }
+    },
+    "inference": {
+        "with_sam_refiner": true,
+        "path_sam_model": "./models/sam_base_model/sam_vit_h_4b8939.pth",
+        "list_geojson_to_keep": ["config/boundary_ign_troudeau/boundary_ign_troudeau.geojson"]
     }
 }

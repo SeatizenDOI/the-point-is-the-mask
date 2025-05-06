@@ -11,3 +11,4 @@
 - [] Refaire une passe de typage et de commentaire
 - [] Deamndé à matteo son masque d'annotation
 - [] Inférence => refacto le geojson into crs du raster
+- [] Pourquoi gardé les images de test si on les utilise pas N => Potentiellement les sup

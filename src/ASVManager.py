@@ -46,8 +46,8 @@ class ASVManager:
         class_quantiles = {}
         for class_name, values in class_probability_values.items():
             values = np.array(values)
-            q5, q95 = np.percentile(values, [1, 99])
-            class_quantiles[class_name] = (q5, q95)
+            q1, q99 = np.percentile(values, [1, 99])
+            class_quantiles[class_name] = (q1, q99)
         
         print(f"\nClass quantiles are: {class_quantiles}")
         return class_quantiles
@@ -86,12 +86,12 @@ class ASVManager:
 
             for i, class_name in enumerate(class_names):
                 if class_name in self.class_quantiles:
-                    q5, q95 = self.class_quantiles[class_name]
+                    q1, q99 = self.class_quantiles[class_name]
                     band = raster_data[i]
                     valid_mask = ~np.isnan(band)
                     stretched = np.empty_like(band)
                     stretched[:] = np.nan
-                    stretched[valid_mask] = (band[valid_mask] - q5) / (q95 - q5 + 1e-6)
+                    stretched[valid_mask] = (band[valid_mask] - q1) / (q99 - q1 + 1e-6)
                     raster_data[i] = np.clip(stretched, 0, 1)
 
 
@@ -113,7 +113,7 @@ class ASVManager:
 
 
     def setup_session_asv(self, session_path: Path) -> None:
-
+        """ Download a ASV session but only the PROCESSED_DATA IA part."""
         path_ia_session = Path(session_path, "PROCESSED_DATA", "IA")
 
         if path_ia_session.exists() and len(list(path_ia_session.iterdir())) != 0:

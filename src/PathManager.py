@@ -118,5 +118,3 @@ class PathManager:
         self.refine_test_annotation_folder.mkdir(exist_ok=True, parents=True)
         self.eval_folder.mkdir(exist_ok=True, parents=True)
         self.eval_prediction_on_annotation_zone.mkdir(exist_ok=True, parents=True)
-
-

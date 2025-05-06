@@ -459,7 +459,7 @@ class TileManager:
 
             self.align_annotation_to_ortho(raster_anno, ortho_path)
 
-            gdf_troudeau = gpd.read_file("config/boundary_ign_troudeau/boundary_ign_troudeau.geojson")
+            gdf_troudeau = gpd.read_file("config/boundary_ign_troudeau/boundary_ign_troudeau.geojson") # !FIXME
             gdf_troudeau = gdf_troudeau.to_crs(ortho_crs)
             geom_troudeau = gdf_troudeau.iloc[0].geometry
 

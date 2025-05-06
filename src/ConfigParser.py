@@ -8,6 +8,7 @@ SETUP_PARAM = "setup"
 TILES_PARAM = "tiles"
 TRAIN_PARAM = "train"
 MODEL_PARAM = "parameters"
+INFERENCE_PARAM = "inference"
 class ConfigParser:
 
     def __init__(self, opt: Namespace) -> None:
@@ -18,6 +19,7 @@ class ConfigParser:
     
         self.tiles_dict, self.clean_dict, self.model_dict = {}, {}, {}
         self.global_dict, self.setup_dict, self.train_dict = {}, {}, {}
+        self.inference_dict = {}
 
         self.verify_basic_header_exists()
 
@@ -69,6 +71,9 @@ class ConfigParser:
 
         self.model_dict = self.train_dict.get(MODEL_PARAM, {})
         if self.model_dict == {}: raise NameError(f"Cannot find {MODEL_PARAM} in config json")
+
+        self.inference_dict = self.config_json.get(INFERENCE_PARAM, {})
+        if self.inference_dict == {}: raise NameError(f"Cannot find {INFERENCE_PARAM} in config json")
 
 
 
@@ -235,3 +240,15 @@ class ConfigParser:
         if t == None: return None
         p = t.get("model_path", None)
         return Path(p) if p != None else None
+    
+    @property
+    def with_sam_refiner(self) -> bool:
+        return bool(self.inference_dict.get("with_sam_refiner", True))
+    
+    @property
+    def path_sam_model(self) -> str:
+        return str(self.inference_dict.get("path_sam_model", ""))
+
+    @property
+    def list_geojson_to_keep_inference(self) -> list:
+        return self.inference_dict.get("list_geojson_to_keep", [])

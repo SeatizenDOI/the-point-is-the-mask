@@ -18,7 +18,7 @@ class UAVManager:
         self.setup()
 
     
-    def setup(self) -> dict:
+    def setup(self) -> None:
         
         print("\n\n------ [UAV - Download photog] ------\n")
         # Download sessions
@@ -74,7 +74,7 @@ class UAVManager:
 
 
     def setup_session_uav(self, session_path: Path) -> None:
-
+        """ Download only the photog folder for an UAV session."""
         path_photog_session = Path(session_path, "PROCESSED_DATA", "PHOTOGRAMMETRY")
 
         if path_photog_session.exists() and len(list(path_photog_session.iterdir())) != 0:

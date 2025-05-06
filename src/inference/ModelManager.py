@@ -28,7 +28,7 @@ class ModelManager:
         
         
         self.unwanted_value = max(self.model.config.id2label) + 1
-        self.label_sand_id = self.model.config.label2id.get("Sand", 5)
+        self.label_sand_id = self.model.config.label2id.get("Sand", 5) # We want to refine only on the sand.
         
         if self.opt.use_sam_refiner:
             self.setup_sam_refiner()

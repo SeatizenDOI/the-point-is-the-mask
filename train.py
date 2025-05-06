@@ -65,17 +65,16 @@ def main(opt: Namespace) -> None:
             enable_folder=False, enable_session=False, enable_csv=True, 
             path_folder=None, path_session=None, path_csv_file=pm.uav_csv, 
             path_segmentation_model=first_model_path, 
-            path_geojson="config/boundary_ign_troudeau/boundary_ign_troudeau.geojson", 
+            path_geojson=cp.list_geojson_to_keep_inference, 
             horizontal_overlap=0.5,   
             vertical_overlap=0.5, 
             tile_size=512, 
-            geojson_crs='EPSG:4326', 
             underwater_color_correction=False, 
             path_output='./data', 
             index_start='0', 
             clean=True,
-            use_sam_refiner=True, 
-            path_sam_model='./models/sam_base_model/sam_vit_h_4b8939.pth',
+            use_sam_refiner=cp.with_sam_refiner, 
+            path_sam_model=cp.path_sam_model,
             max_pixels_by_slice_of_rasters=800000000
         )
         inference_main(inference_args)

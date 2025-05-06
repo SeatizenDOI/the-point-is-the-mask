@@ -119,8 +119,8 @@ def perform_evalutation(pm: PathManager, cp: ConfigParser, model_path: Path) -> 
             epsilon = 1e-7
             intersection = np.diag(cm)
             per_class_acc = intersection / (np.sum(cm, axis=1) + epsilon)
-
-            mean_acc = np.mean(per_class_acc)
+            per_class_acc_for_mean = per_class_acc[per_class_acc > 0]
+            mean_acc = np.mean(per_class_acc_for_mean)
             pixel_acc = np.sum(intersection) / np.sum(cm)
 
 
@@ -156,9 +156,9 @@ def perform_evalutation(pm: PathManager, cp: ConfigParser, model_path: Path) -> 
     # === Global Metrics ===
     epsilon = 1e-7
     intersection = np.diag(cm)
+    per_class_acc = intersection / (np.sum(cm, axis=1) + epsilon)
     mean_acc = np.mean(per_class_acc)
     pixel_acc = np.sum(intersection) / np.sum(cm)
-    per_class_acc = intersection / (np.sum(cm, axis=1) + epsilon)
 
     print("  Pixel Accuracy Per Class:")
     for i, cls in enumerate(labels):

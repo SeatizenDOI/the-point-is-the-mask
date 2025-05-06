@@ -26,7 +26,7 @@ class MosaicManager:
         print(f"✅ Detected class range: {self.global_min} to {self.global_max} ({self.num_classes} classes)")
 
 
-    def build_raster(self, ):
+    def build_raster(self):
         tiles_with_transforms = self.create_intermediate_subraster()
         self.populate_and_save_subraster(tiles_with_transforms)
         self.create_final_rasters()
