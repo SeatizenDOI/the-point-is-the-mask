@@ -20,13 +20,13 @@ def parse_args() -> Namespace:
 
     # Path of input.
     parser.add_argument("-pfol", "--path_folder", default="input", help="Path to folder of session")
-    parser.add_argument("-pses", "--path_session", default="/media/bioeos/E/drone/serge_drone_session/20231208_REU-ST-LEU_UAV-01_03/PROCESSED_DATA/PHOTOGRAMMETRY/odm_orthophoto/odm_orthophoto.tif", help="Path to the session")
+    parser.add_argument("-pses", "--path_session", default="/media/bioeos/E/drone/serge_drone_session/20231202_REU-TROU-DEAU_UAV-01_01/PROCESSED_DATA/PHOTOGRAMMETRY/odm_orthophoto/odm_orthophoto.tif", help="Path to the session")
     parser.add_argument("-pcsv", "--path_csv_file", default=None, help="Path to the csv file")
 
     # Model arguments.
-    parser.add_argument("-psm", "--path_segmentation_model", default="models/quantile99-segmentation_model-ce0-dice1/checkpoint-5358", help="Path to semgentation model, currently only in local.") # TODO add remote parse
-    # parser.add_argument("-psm", "--path_segmentation_model", default="models/SegForCoral-2025_04_30_39022-bs16_coarse", help="Path to semgentation model, currently only in local.") # TODO add remote parse
-    parser.add_argument("-pgeo", "--path_geojson", type=list, default=["config/boundary_ign_stleu/boundary_ign_stleu.geojson", "config/boundary_ign_troudeau/boundary_ign_troudeau.geojson"], help="Path to geojson to crop ortho inside area. We can use multiple geojson")
+    parser.add_argument("-psm", "--path_segmentation_model", default="models/SegForCoral-2025_05_07_56277-bs16_coarse", help="Path to semgentation model, currently only in local.")
+    parser.add_argument("-pgeo", "--path_geojson", type=list, default=["config/test.geojson"], help="Path to geojson to crop ortho inside area. We can use multiple geojson")
+    
     parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0.5, help="Horizontal overlap between tiles.")
     parser.add_argument("-vo", "--vertical_overlap", type=float, default=0.5, help="Vertical overlap between tiles.")
     parser.add_argument("-ts", "--tile_size", type=int, default=512, help="Split Orthophoto into tiles.")

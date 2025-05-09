@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from PIL import Image
 from tqdm import tqdm
 import geopandas as gpd
@@ -325,12 +326,11 @@ class TileManager:
         print(f"On {len(annotation_files)} files, we have deleted {cpt_error} files")
     
 
-    def align_annotation_to_ortho(self, annotation_path: Path, ortho_path: Path):
+    def align_annotation_to_ortho(self, annotation_path: Path, ortho_path: Path) -> Path:
 
         with rasterio.open(ortho_path) as ortho, rasterio.open(annotation_path) as anno:
-
             if ortho.transform == anno.transform and ortho.crs == anno.crs and ortho.res == anno.res:
-                return
+                return annotation_path
             
             print("Resampling and aligning annotation to match orthophoto...")
 
@@ -348,7 +348,7 @@ class TileManager:
                 src_crs=anno.crs,
                 dst_transform=dst_transform,
                 dst_crs=dst_crs,
-                resampling=rasterio.warp.Resampling.nearest
+                resampling=rasterio.warp.Resampling.nearest,
             )
 
             # Copy metadata
@@ -359,8 +359,11 @@ class TileManager:
             })
 
         # Save to temporary aligned file
-        with rasterio.open(annotation_path, 'w', **aligned_meta) as dst:
+        aligned_path = Path(annotation_path.parent, f"{annotation_path.stem}_aligned.tif")
+        with rasterio.open(aligned_path, 'w', **aligned_meta) as dst:
             dst.write(aligned_data)
+        
+        return aligned_path
 
 
     def process_tiles_refine_annotation(self, args: tuple) -> None:
@@ -457,13 +460,19 @@ class TileManager:
             session_name = ortho_name.replace("_ortho.tif", "")
             ortho_path, ortho_crs, height, width = uav_manager.get_ortho_information_from_ortho_name(ortho_name)
 
-            self.align_annotation_to_ortho(raster_anno, ortho_path)
+            raster_anno = self.align_annotation_to_ortho(raster_anno, ortho_path)
 
-            gdf_troudeau = gpd.read_file("config/boundary_ign_troudeau/boundary_ign_troudeau.geojson") # !FIXME
-            gdf_troudeau = gdf_troudeau.to_crs(ortho_crs)
-            geom_troudeau = gdf_troudeau.iloc[0].geometry
+            gdfs = []
+            for path_geojson in self.cp.list_geojson_to_keep_inference:
+                if not Path(path_geojson).exists(): continue
+                gdf = gpd.read_file(path_geojson)
+                gdf.to_crs(ortho_crs, inplace=True)
+                gdfs.append(gdf)
 
-            tile_coords = [(session_name, x, y, ortho_path, geom_troudeau, raster_anno) 
+            combined_gdf = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True))
+            geom_global = unary_union(combined_gdf.geometry)
+
+            tile_coords = [(session_name, x, y, ortho_path, geom_global, raster_anno) 
                 for x in range(0, width - self.cp.tile_size + 1, self.cp.horizontal_step) 
                 for y in range(0, height - self.cp.tile_size + 1, self.cp.vertical_step)]
             

@@ -67,16 +67,17 @@ class TileManager:
             
             window = Window(tile_x, tile_y, self.tile_size, self.tile_size)
             tile_transform = rasterio.windows.transform(window, ortho.transform)
-            tile_bounds = box(*array_bounds(self.tile_size, self.tile_size, tile_transform))
             
-            for poly_gdf in self.geojson_datas:
-                if poly_gdf.crs != raster_crs:
-                    poly_gdf = poly_gdf.to_crs(raster_crs)
-                
-                if poly_gdf.intersects(tile_bounds).any():
-                    break  # There is an intersection; keep the tile
-            else:
-                return  # No intersection.
+            if len(self.geojson_datas) != 0:
+                tile_bounds = box(*array_bounds(self.tile_size, self.tile_size, tile_transform))
+                for poly_gdf in self.geojson_datas:
+                    if poly_gdf.crs != raster_crs:
+                        poly_gdf = poly_gdf.to_crs(raster_crs)
+                    
+                    if poly_gdf.intersects(tile_bounds).any():
+                        break  # There is an intersection; keep the tile
+                else:
+                    return  # No intersection.
     
             # Read raster data
             tile_ortho = ortho.read(window=window)

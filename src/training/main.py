@@ -78,7 +78,7 @@ def main_launch_training(cp: ConfigParser, path_to_image: Path, class_mapping: d
     generate_model_card(data_paths, model_manager)
 
     # Send data to hugging face if needed.
-    if model_manager.push_to_hub(): return 
+    if not model_manager.push_to_hub(): return model_manager.output_dir 
     print("\n\n------ [TRAIN - Send data to huggingface] ------\n")
     model_manager.send_data_to_hugging_face()
 

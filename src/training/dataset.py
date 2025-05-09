@@ -30,7 +30,7 @@ class DatasetManager:
         self.base_path = path_to_image_and_annotation
         self.cp = cp
 
-        self.train_ds, self.validation_ds = pd.DataFrame(), pd.DataFrame()
+        self.train_ds, self.validation_ds, self.test_ds = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
 
     def load_datasets(self):
@@ -51,13 +51,20 @@ class DatasetManager:
         images = list(image_to_annotation.keys())
         annotations = list(image_to_annotation.values())
 
-        # Split into train and validation sets
-        image_paths_train, image_paths_validation, label_paths_train, label_paths_validation = train_test_split(
+        # Split into train, validation, and test sets
+        image_paths_train, image_paths_temp, label_paths_train, label_paths_temp = train_test_split(
             images, annotations, test_size=0.3, random_state=42
         )
 
+        image_paths_validation, image_paths_test, label_paths_validation, label_paths_test = train_test_split(
+            image_paths_temp, label_paths_temp, test_size=0.5, random_state=42
+        )
+
+
         self.train_ds = create_dataset(image_paths_train, label_paths_train)
         self.validation_ds = create_dataset(image_paths_validation, label_paths_validation)
+        self.test_ds = create_dataset(image_paths_test, label_paths_test) # TODO Remove, unused
+
 
     def attach_transforms(self) -> None:
         
@@ -91,3 +98,4 @@ class DatasetManager:
         # Set transforms
         self.train_ds.set_transform(train_transforms)
         self.validation_ds.set_transform(val_transforms)
+        self.test_ds.set_transform(val_transforms)

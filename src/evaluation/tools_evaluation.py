@@ -11,7 +11,7 @@ import rasterio
 from rasterio.mask import mask as rio_mask
 from rasterio.windows import Window
 
-def clip_ortho_on_test_zone(ortho_path: Path, drone_zone_path: Path, output_clip_path: Path) -> gpd.GeoDataFrame | dict:
+def clip_ortho_on_test_zone(ortho_path: Path, drone_zone_path: Path, output_clip_path: Path) -> bool:
     """Clip the orthophoto on test zone. Return polygon because he is in the same crs as the ortho."""
     
     if not ortho_path.exists(): raise FileNotFoundError(f"{ortho_path} not found")
@@ -28,7 +28,7 @@ def clip_ortho_on_test_zone(ortho_path: Path, drone_zone_path: Path, output_clip
         raster_bounds_geom = box(*src.bounds)
         if not polygon_gdf.geometry.unary_union.intersects(raster_bounds_geom):
             print("The polygon does not overlap with the orthophoto raster extent.")
-            return {}
+            return False
         
         out_image, out_transform = rio_mask(src, polygon_gdf.geometry, crop=True)
         out_meta = src.meta.copy()
@@ -41,8 +41,7 @@ def clip_ortho_on_test_zone(ortho_path: Path, drone_zone_path: Path, output_clip
     with rasterio.open(output_clip_path, "w", **out_meta) as dst:
         dst.write(out_image)
     
-    return polygon_gdf
-
+    return True
 
 def split_ortho_into_tiles(clipped_ortho_path: Path, tile_size: int, ho: int, vo: int, tiles_folder: Path) -> None:
     """Split ortho into tiles."""
@@ -106,7 +105,7 @@ def perform_inference(model_path: Path, png_folder: Path, output_folder: Path, b
         with torch.no_grad():
             logits = model(**inputs).logits
             logits = torch.nn.functional.interpolate(logits, size=img.size, mode="bilinear", align_corners=False)
-            pred_mask = logits.argmax(dim=1)[0].cpu().numpy().astype(np.uint8) + 1
+            pred_mask = logits.argmax(dim=1)[0].cpu().numpy().astype(np.uint8) + 1 # Add one to get value between 1 and 5
 
         for cls_id in np.unique(pred_mask):
             binary_mask = (pred_mask == cls_id).astype(np.uint8)
@@ -143,12 +142,14 @@ def merge_predictions(clip_ortho_path: Path, prediction_folder: Path, outputfile
         dst.write(final_mask.astype(np.uint8), 1)
 
 
-def resize_merged_raster(merged_pred_path: Path, annotation_mask_png_path: Path, output_png_path: Path, drone_polygon_gdf: gpd.GeoDataFrame) -> None:
+def resize_merged_raster(merged_pred_path: Path, annotation_mask_png_path: Path, output_png_path: Path, drone_polygon_path: Path) -> None:
 
     if not merged_pred_path.exists(): raise FileNotFoundError(f"{merged_pred_path} not found")
     if not annotation_mask_png_path.exists(): raise FileNotFoundError(f"{annotation_mask_png_path} not found")
 
+    drone_polygon_gdf = gpd.read_file(drone_polygon_path)
     with rasterio.open(merged_pred_path) as src:
+        drone_polygon_gdf = drone_polygon_gdf.to_crs(src.crs)
         clipped_data, clipped_transform = rio_mask(src, [geom for geom in drone_polygon_gdf.geometry], crop=True)
         clipped_meta = src.meta.copy()
         clipped_meta.update({

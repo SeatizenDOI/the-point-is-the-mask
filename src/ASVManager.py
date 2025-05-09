@@ -21,6 +21,8 @@ class ASVManager:
     def setup(self) -> dict:
         
         print("\n\n------ [ASV - Download and get class quantiles] ------\n")
+        
+        class_probability_values = defaultdict(list)
         # Download sessions
         for session in self.cp.asv_sessions:
             session_path = Path(self.pm.asv_sessions_folder, session)
@@ -31,7 +33,6 @@ class ASVManager:
                 print(f"Cannot find raster for session {session_path_ia}")
                 return
             
-            class_probability_values = defaultdict(list)
             for raster in session_path_ia.iterdir():
                 if raster.suffix.lower() not in [".tif"]: continue
                 

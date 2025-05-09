@@ -52,8 +52,7 @@ def perform_evalutation(pm: PathManager, cp: ConfigParser, model_path: Path) -> 
 
             # Clipping the ortho.
             clip_ortho_path = Path(pm.eval_tmp_folder, f"{ortho_path.stem}_{drone_test_zone_geojson_path.stem}.tif")
-            drone_polygon_gdf = clip_ortho_on_test_zone(ortho_path, drone_test_zone_geojson_path, clip_ortho_path)
-            if len(drone_polygon_gdf) == 0:
+            if not clip_ortho_on_test_zone(ortho_path, drone_test_zone_geojson_path, clip_ortho_path):
                 continue
 
             # We split the orthophoto into tiles.
@@ -74,8 +73,8 @@ def perform_evalutation(pm: PathManager, cp: ConfigParser, model_path: Path) -> 
             
             # Resize merged raster.
             output_png_path = Path(pm.eval_prediction_on_annotation_zone, f"{ortho_path.stem}__{drone_test_zone_geojson_path.stem}.png")
-            resize_merged_raster(merged_pred_path, annotation_mask_png_path, output_png_path, drone_polygon_gdf)
-
+            resize_merged_raster(merged_pred_path, annotation_mask_png_path, output_png_path, drone_test_zone_geojson_path)
+            
 
     all_metrics = []
     all_gt_flat = []

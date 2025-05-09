@@ -19,16 +19,15 @@ from .PathRasterManager import PathRasterManager
 
 class ModelManager:
 
-    def __init__(self, opt: Namespace):
+    def __init__(self, opt: Namespace) -> None:
         self.opt = opt
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = SegformerForSemanticSegmentation.from_pretrained(self.opt.path_segmentation_model).to(self.device)
         self.processor = AutoImageProcessor.from_pretrained("nvidia/mit-b0", do_reduce_labels=False, use_fast=False)
         
-        
         self.unwanted_value = max(self.model.config.id2label) + 1
-        self.label_sand_id = self.model.config.label2id.get("Sand", 5) # We want to refine only on the sand.
+        self.label_sand_id = int(self.model.config.label2id.get("Sand", 5)) # We want to refine only on the sand.
         
         if self.opt.use_sam_refiner:
             self.setup_sam_refiner()
@@ -72,7 +71,7 @@ class ModelManager:
 
         return filled_mask
     
-    def predict_sam(self, mask, image_path):
+    def predict_sam(self, mask: np.ndarray, image_path: Path) -> np.ndarray:
         
         # Get all sand value and replace its value by unwanted.
         binary_mask = (mask == self.label_sand_id).astype(np.uint8)
@@ -106,7 +105,7 @@ class ModelManager:
                 align_corners=False
             )
         mask_resized_bilinear = mask_resized_bilinear.argmax(dim=1)[0].cpu().numpy().astype(np.uint8)
-        return mask_resized_bilinear + 1
+        return mask_resized_bilinear + 1 # Add one to get value between 1 and 5
     
 
     def inference(self, path_manager: PathRasterManager):

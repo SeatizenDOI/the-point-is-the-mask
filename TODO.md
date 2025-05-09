@@ -12,3 +12,4 @@
 - [] Deamndé à matteo son masque d'annotation
 - [] Inférence => refacto le geojson into crs du raster
 - [] Pourquoi gardé les images de test si on les utilise pas N => Potentiellement les sup
+- [] Ajouter le code couleur dans le raster
