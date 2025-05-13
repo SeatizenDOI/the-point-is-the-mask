@@ -250,11 +250,9 @@ class TileManager:
 
             if drone_test_footprint.intersects(tile_bounds):
                 test_images_list.append(file.stem)
+                continue
             
-            if ts == TrainingStep.COARSE:
-                output_dir = self.pm.coarse_test_images_folder if file.stem in test_images_list else self.pm.coarse_train_images_folder
-            else:
-                output_dir = self.pm.refine_test_images_folder if file.stem in test_images_list else self.pm.refine_train_images_folder
+            output_dir = self.pm.coarse_train_images_folder if ts == TrainingStep.COARSE else self.pm.refine_train_images_folder
             args.append((file, output_dir, self.cp.use_color_correction))
         
 
@@ -272,14 +270,10 @@ class TileManager:
         folder_to_iter = self.pm.coarse_upsampled_annotation_tif_folder if ts == TrainingStep.COARSE else self.pm.refine_annotation_tif_folder
         for file in folder_to_iter.iterdir():
             if file.suffix.lower() != ".tif": continue
+            if file.stem in test_images_list: continue
 
             # Determine output folder based on test session
-            if ts == TrainingStep.COARSE:
-                output_dir = self.pm.coarse_test_annotation_folder if file.stem in test_images_list else self.pm.coarse_train_annotation_folder
-            else:
-                output_dir = self.pm.refine_test_annotation_folder if file.stem in test_images_list else self.pm.refine_train_annotation_folder
-
-
+            output_dir = self.pm.coarse_train_annotation_folder if ts == TrainingStep.COARSE else self.pm.refine_train_annotation_folder
             args.append((file, output_dir, self.cp.use_color_correction))
 
         with Pool(processes=cpu_count()) as pool:
@@ -389,14 +383,11 @@ class TileManager:
             
             # Black threshold.
             percentage_black_pixel = np.sum(greyscale_tile == 0) * 100 / self.cp.tile_size**2
-            if percentage_black_pixel > 5:
-                # print(f"Skipping tile {tile_x}, {tile_y} as it is mostly black.")
-                return
+            if percentage_black_pixel > 5: return
+
             # White threshold.
             percentage_white_pixel = np.sum(greyscale_tile == 255) * 100 / self.cp.tile_size**2
-            if percentage_white_pixel > 10:
-                # print(f"Skipping tile {tile_x}, {tile_y} as it is mostly white.")
-                return
+            if percentage_white_pixel > 10: return
             
             tile_meta = ortho.meta.copy()
             tile_meta.update({

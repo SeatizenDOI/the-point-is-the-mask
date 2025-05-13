@@ -146,9 +146,6 @@ class ConfigParser:
     
     def clean_coarse_train(self) -> bool:
         return bool(self.clean_dict.get("coarse_train", False))
-    
-    def clean_coarse_test(self) -> bool:
-        return bool(self.clean_dict.get("coarse_test", False))
 
     def clean_refine_cropped_ortho_tif(self) -> bool:
         return bool(self.clean_dict.get("refine_cropped_ortho_tif", False))    
@@ -159,8 +156,6 @@ class ConfigParser:
     def clean_refine_train(self) -> bool:
         return bool(self.clean_dict.get("refine_train", False))
     
-    def clean_refine_test(self) -> bool:
-        return bool(self.clean_dict.get("refine_test", False))
 
     def clean_eval(self) -> bool:
         return bool(self.clean_dict.get("eval", False))

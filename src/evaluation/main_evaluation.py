@@ -58,7 +58,7 @@ def perform_evalutation(pm: PathManager, cp: ConfigParser, model_path: Path) -> 
             # We split the orthophoto into tiles.
             eval_tile_folder = Path(pm.eval_tmp_folder, "tiles")
             eval_images_folder = Path(pm.eval_tmp_folder, "images")
-            split_ortho_into_tiles(clip_ortho_path, cp.tile_size, cp.horizontal_overlap, cp.vertical_overlap, eval_tile_folder)
+            split_ortho_into_tiles(clip_ortho_path, cp.tile_size, 0.5, 0.5, eval_tile_folder)
 
             # We convert the tiles into png.
             convert_tiles_into_png(eval_tile_folder, eval_images_folder)
@@ -117,24 +117,35 @@ def perform_evalutation(pm: PathManager, cp: ConfigParser, model_path: Path) -> 
             # === Metrics ===
             epsilon = 1e-7
             intersection = np.diag(cm)
+            union = np.sum(cm, axis=0) + np.sum(cm, axis=1) - intersection
             per_class_acc = intersection / (np.sum(cm, axis=1) + epsilon)
+            iou_per_class = intersection / (union + epsilon)
             per_class_acc_for_mean = per_class_acc[per_class_acc > 0]
+            per_class_iou_for_mean = iou_per_class[iou_per_class > 0]
             mean_acc = np.mean(per_class_acc_for_mean)
+            mean_iou = np.mean(per_class_iou_for_mean)
             pixel_acc = np.sum(intersection) / np.sum(cm)
 
 
+            # === Compute IoU per class and mean IoU ===
             print(f"  ✅ Pixel Accuracy: {pixel_acc:.4f}")
             print(f"  ✅ Mean Accuracy : {mean_acc:.4f}")   
+            print(f"  ✅ Mean IoU     : {mean_iou:.4f}")
 
             print("  Pixel Accuracy Per Class:")
             for i, cls in enumerate(labels):
                 print(f"    {id2label[cls]}: {per_class_acc[i]:.4f}")
+            print("  IoU Per Class:")
+            for i, cls in enumerate(labels):
+                print(f"    {id2label[cls]}: {iou_per_class[i]:.4f}")
 
             all_metrics.append({
                 "zone": pred_png_path.stem,
                 "mean_acc": mean_acc,   
-                "pixel_acc": pixel_acc
+                "pixel_acc": pixel_acc,
+                "mean_iou": mean_iou
             })
+
 
     # === MICRO-AVERAGED METRICS ===
     print("\n📦 Micro-Averaged Metrics Across Zones (all pixels):")
@@ -155,16 +166,25 @@ def perform_evalutation(pm: PathManager, cp: ConfigParser, model_path: Path) -> 
     # === Global Metrics ===
     epsilon = 1e-7
     intersection = np.diag(cm)
+    union = np.sum(cm, axis=0) + np.sum(cm, axis=1) - intersection
     per_class_acc = intersection / (np.sum(cm, axis=1) + epsilon)
-    mean_acc = np.mean(per_class_acc)
+    iou_per_class = intersection / (union + epsilon)
+    per_class_acc_for_mean = per_class_acc[per_class_acc > 0]
+    per_class_iou_for_mean = iou_per_class[iou_per_class > 0]
+    mean_acc = np.mean(per_class_acc_for_mean)
+    mean_iou = np.mean(per_class_iou_for_mean)
     pixel_acc = np.sum(intersection) / np.sum(cm)
 
     print("  Pixel Accuracy Per Class:")
     for i, cls in enumerate(labels):
         print(f"    {id2label[cls]}: {per_class_acc[i]:.4f}")
+    print("  IoU Per Class:")
+    for i, cls in enumerate(labels):
+        print(f"    {id2label[cls]}: {iou_per_class[i]:.4f}")
 
     print(f"\n  ✅ Pixel Accuracy: {pixel_acc:.4f}")
     print(f"  ✅ Mean Accuracy : {mean_acc:.4f}")
+    print(f"  ✅ Mean IoU     : {mean_iou:.4f}")
 
 
     # === PLOT ALL CONFUSION MATRICES SIDE BY SIDE ===

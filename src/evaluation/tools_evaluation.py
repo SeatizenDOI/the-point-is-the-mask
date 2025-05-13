@@ -85,7 +85,6 @@ def convert_tiles_into_png(tiles_folder: Path, images_folder: Path) -> None:
 
 def perform_inference(model_path: Path, png_folder: Path, output_folder: Path, base_model_name: str) -> dict:
     
-
     if not model_path.exists(): raise FileNotFoundError(f"{model_path} not found")
     if not png_folder.exists(): raise FileNotFoundError(f"{png_folder} not found")
     output_folder.mkdir(exist_ok=True, parents=True)

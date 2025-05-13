@@ -10,7 +10,6 @@ from argparse import Namespace
 from transformers import AutoImageProcessor, SegformerForSemanticSegmentation
 from segment_anything import sam_model_registry
 from scipy.ndimage import distance_transform_edt
-from osgeo import gdal
 
 from ..utils.sam_refiner import sam_refiner
 from .PathRasterManager import PathRasterManager

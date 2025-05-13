@@ -10,11 +10,9 @@
             "coarse_cropped_ortho_tif": false,
             "coarse_upscaling_annotation_tif": false,
             "coarse_train": false,
-            "coarse_test": false,
             "refine_cropped_ortho_tif": false,
             "refine_upscaling_annotation_tif": false,
             "refine_train": false,
-            "refine_test": false,
             "eval": false
         }
     },
