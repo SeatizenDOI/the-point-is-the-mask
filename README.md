@@ -1,4 +1,5 @@
 <p align="center">
+  <a href="https://doi.org/10.5281/zenodo.15455743"><img src="https://zenodo.org/badge/967978876.svg" alt="DOI"></a>
   <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/graphs/contributors"><img src="https://img.shields.io/github/contributors/SeatizenDOI/the-point-is-the-mask" alt="GitHub contributors"></a>
   <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/network/members"><img src="https://img.shields.io/github/forks/SeatizenDOI/the-point-is-the-mask" alt="GitHub forks"></a>
   <a href="https://github.com/SeatizenDOI/the-point-is-the-mask/issues"><img src="https://img.shields.io/github/issues/SeatizenDOI/the-point-is-the-mask" alt="GitHub issues"></a>
