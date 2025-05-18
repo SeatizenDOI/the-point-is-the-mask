@@ -45,6 +45,11 @@ To ensure a consistent environment for all users, this project uses a Conda envi
     wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth -O ./models/sam_base_model/sam_vit_h_4b8939.pth
     ```
 
+5. **Env file:** You need a `.env` file at root folder with inside:
+    ```txt
+    HUGGINGFACE_TOKEN=YOUR_TOKEN
+    ```
+
 
 5. **Troubleshooting:** 
 
@@ -113,6 +118,24 @@ Then:
 ln -sf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /home/bioeos/miniconda3/envs/segmentation_env/lib/libstdc++.so
 ln -sf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 /home/bioeos/miniconda3/envs/segmentation_env/lib/libstdc++.so.6
 ```
+
+## How to use it.
+
+To reproduce **the point is the mask**, you just need to launch the training part. All the configuration are already setup.
+
+
+### Training.
+
+You can update the configuration with the `config.json` file.
+
+To launch the script, `python train.py`
+
+
+
+### Inference.
+
+Launch `python inference.py -h`
+
 
 
 # Optionnal information - use to generate tiles and serve with tms-server.
