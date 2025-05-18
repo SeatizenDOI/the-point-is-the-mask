@@ -1,7 +1,6 @@
 output*
 segmentation_model
 __pycache__
-*.png
 *.ipynb
 input*
 models*

@@ -37,8 +37,8 @@
         }
     },
     "train": {
-        "base_model": "nvidia/mit-b2",
-        "model_name": "SegForCoralBig",
+        "base_model": "nvidia/mit-b0",
+        "model_name": "SegForCoralTest",
         "path_output_dir": "models",
         "parameters": {
             "epochs": 100,
@@ -56,7 +56,7 @@
         "refine_training": {
             "model_path": null,
             "resume_from": null,
-            "upload_on_huggingface": true
+            "upload_on_huggingface": false
         }
     },
     "inference": {

@@ -7,12 +7,12 @@ from tqdm import tqdm
 from PIL import Image
 from pathlib import Path
 from argparse import Namespace
-from transformers import AutoImageProcessor, SegformerForSemanticSegmentation
-from segment_anything import sam_model_registry
 from scipy.ndimage import distance_transform_edt
+from transformers import AutoImageProcessor, SegformerForSemanticSegmentation
 
 from ..utils.sam_refiner import sam_refiner
 from .PathRasterManager import PathRasterManager
+from ..utils.segment_anything import sam_model_registry
 
 
 

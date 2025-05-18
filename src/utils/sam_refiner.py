@@ -1,7 +1,7 @@
 import cv2
 import torch
 import numpy as np
-from segment_anything.utils.transforms import ResizeLongestSide
+from .segment_anything.utils.transforms import ResizeLongestSide
 from .sam_utils import prepare_image, extract_bboxes_expand, extract_points, extract_mask
 
 
