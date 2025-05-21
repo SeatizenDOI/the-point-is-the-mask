@@ -11,7 +11,7 @@ from src.utils.lib_tools import print_header
 from src.training.main import main_launch_training
 from src.utils.training_step import TrainingStep
 
-from inference import main as inference_main
+from inference import main_raster as inference_main
 
 from src.evaluation.main_evaluation import perform_evalutation
 
@@ -23,6 +23,8 @@ def parse_args() -> Namespace:
     # Config.
     parser.add_argument("-cp", "--config_path", default="./config.json", help="Path to the config file.")
     parser.add_argument("-ep", "--env_path", default="./.env", help="Path to the env file.")
+    parser.add_argument("-oe", "--only_evaluation", action="store_true", help="Only perform evalution. Skip all the rest.")
+
 
     return parser.parse_args()
 
@@ -36,6 +38,11 @@ def main(opt: Namespace) -> None:
     # Initialize path manager.
     pm = PathManager(cp.output_path)
     pm.setup(cp)
+
+    # Perform only evaluation.
+    if opt.only_evaluation:
+        perform_evalutation(pm, cp, cp.model_path_refine)
+        return
 
     # Create coarse annotations.
     asv_manager = ASVManager(cp, pm)

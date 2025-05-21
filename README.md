@@ -137,9 +137,12 @@ To launch the script, `python train.py`
 
 Launch `python inference.py -h`
 
+Launch `python inference.py -efol -c -is_seatizen_session`
 
 
-# Optionnal information - use to generate tiles and serve with tms-server.
+
+
+# Optional information - use to generate tiles and serve with tms-server.
 
 
 ## Create your segmentation dataset.

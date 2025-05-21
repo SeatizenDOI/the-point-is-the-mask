@@ -149,6 +149,15 @@ class MosaicManager:
             nodata=0
         ) as dst:
             dst.write(mosaic[0, :], 1)
+            # Hardcoded color map.
+            colormap = {
+                1: (0, 153, 255, 127),
+                2: (0, 204, 102, 127),
+                3: (204, 102, 0, 127),
+                4: (204, 0, 204, 127),
+                5: (255, 255, 102, 127),
+            }
+            dst.write_colormap(1, colormap)
 
         # Clean up temporary files
         for temp_tiff in self.tmp_rasters_slice:

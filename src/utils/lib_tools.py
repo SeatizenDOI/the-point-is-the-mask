@@ -2,13 +2,14 @@ import enum
 import torch
 import pandas as pd
 from pathlib import Path
+from argparse import Namespace
 
 class Sources(enum.Enum):
     CSV_SESSION = 0
     FOLDER = 1
     SESSION = 2
 
-def get_mode_from_opt(opt) -> Sources | None:
+def get_mode_from_opt(opt: Namespace) -> Sources | None:
     """ Retrieve mode from input option """
     mode = None
 
@@ -21,7 +22,7 @@ def get_mode_from_opt(opt) -> Sources | None:
 
     return mode
 
-def get_src_from_mode(mode: Sources, opt) -> Path:
+def get_src_from_mode(mode: Sources, opt: Namespace) -> Path:
     """ Retrieve src path from mode """
     src = Path()
 
@@ -34,8 +35,8 @@ def get_src_from_mode(mode: Sources, opt) -> Path:
 
     return src
 
-def get_list_rasters(opt) -> list[Path]:
-    """ Retrieve list of sessions from input """
+def get_list_rasters(opt: Namespace) -> list[Path]:
+    """ Retrieve list of rasters from input """
 
     list_sessions: list[Path] = []
 
@@ -58,6 +59,28 @@ def get_list_rasters(opt) -> list[Path]:
     return list_sessions
 
 
+def get_list_sessions(opt: Namespace) -> list[Path]:
+    """ Retrieve list of sessions from input """
+
+    list_sessions: list[Path] = []
+
+    mode = get_mode_from_opt(opt)
+    if mode == None: return list_sessions
+
+    src = get_src_from_mode(mode, opt)
+
+    if mode == Sources.SESSION:
+        list_sessions = [src]
+
+    elif mode == Sources.FOLDER:
+        list_sessions = sorted([s for s in src.iterdir() if s.is_dir()])
+    
+    elif mode == Sources.CSV_SESSION:
+        if src.exists():
+            df_ses = pd.read_csv(src)
+            list_sessions = [Path(row.root_folder, row.session_name) for row in df_ses.itertuples(index=False)]
+
+    return list_sessions
 
 def print_header():
 
