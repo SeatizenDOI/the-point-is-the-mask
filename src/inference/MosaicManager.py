@@ -126,11 +126,24 @@ class MosaicManager:
 
     def create_final_rasters(self):
         print("*\t Create the final raster.")
-        # Merge all the small tiles into a single large raster using rasterio.merge
+
+        colormap = {
+            1: (0, 153, 255, 127),
+            2: (0, 204, 102, 127),
+            3: (204, 102, 0, 127),
+            4: (204, 0, 204, 127),
+            5: (255, 255, 102, 127),
+        }
 
         if len(self.tmp_rasters_slice) == 1:
             Path.rename(self.tmp_rasters_slice[0], self.path_manager.final_merged_tiff_file)
+
+            with rasterio.open(self.path_manager.final_merged_tiff_file, 'r+') as src:
+                
+                # Apply the colormap to band 1
+                src.write_colormap(1, colormap)
             return
+        
         
         mosaic, out_trans = merge(self.tmp_rasters_slice, method="first")
 
@@ -149,14 +162,7 @@ class MosaicManager:
             nodata=0
         ) as dst:
             dst.write(mosaic[0, :], 1)
-            # Hardcoded color map.
-            colormap = {
-                1: (0, 153, 255, 127),
-                2: (0, 204, 102, 127),
-                3: (204, 102, 0, 127),
-                4: (204, 0, 204, 127),
-                5: (255, 255, 102, 127),
-            }
+         
             dst.write_colormap(1, colormap)
 
         # Clean up temporary files
