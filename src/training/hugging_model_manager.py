@@ -32,8 +32,9 @@ class ModelManager():
         elapsed_second_in_day = now.hour * 3600 + now.minute * 60 + now.second
         today = f'{date.today().strftime("%Y_%m_%d")}_{elapsed_second_in_day}'
         training_type = "_coarse" if self.training_step == TrainingStep.COARSE else "_refine"
+        size = self.cp.base_model_name.split("-")[-1]
 
-        self.model_name = f"{self.cp.model_name}-{today}-bs{self.cp.batch_size}{training_type}"[0:96] # Add a limit for huggingface
+        self.model_name = f"{self.cp.model_name}-{size}-{today}-bs{self.cp.batch_size}{training_type}"[0:96] # Add a limit for huggingface
         self.output_dir = Path(self.cp.path_models_checkpoints, self.model_name)
         self.output_dir.mkdir(exist_ok=True, parents=True)
         

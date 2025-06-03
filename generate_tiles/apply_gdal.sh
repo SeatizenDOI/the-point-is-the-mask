@@ -9,7 +9,7 @@ TILES_FOLDER=./output/tiles
 rm -rf $TILES_FOLDER
 mkdir -p $TILES_FOLDER
 
-RASTER_FOLDER=./output/merged_predictions
+RASTER_FOLDER=./final_predictions_raster
 
 for filename in $RASTER_FOLDER/*.tif;
 do

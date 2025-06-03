@@ -13,8 +13,8 @@ with open("color.txt", "r") as file:
 legend_data = {
     "1": "Acropora Branching", 
     "2": "Acropora Tabular",
-    "3": "Non Acropora Massive",
-    "4": "Non Acropora Submassive",
+    "3": "Non-acropora Massive",
+    "4": "Other Corals",
     "5": "Sand",
 }
 

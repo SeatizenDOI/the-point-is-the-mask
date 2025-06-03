@@ -95,14 +95,16 @@ def format_transforms_to_markdown(transforms_dict):
 def format_training_results_to_markdown(trainer_state: dict) -> str:
     training_logs = trainer_state.get("log_history", [])
 
-    markdown_table = "Epoch | Validation Loss | Accuracy | F1 Macro | F1 Micro | Learning Rate\n"
+    markdown_table = "Epoch | Validation Loss | Learning Rate\n"
 
-    markdown_table += "--- | --- | --- | --- | --- | ---\n"
+    markdown_table += "--- | --- | ---\n"
 
     
     seen_epochs = set()
 
     for log in training_logs:
+        if "eval_loss" not in log: continue
+
         epoch = log.get("epoch", "N/A")
         epoch = int(epoch)  # Ensure epoch is displayed as an integer
         if epoch in seen_epochs:
@@ -129,8 +131,8 @@ def format_hyperparameters_to_markdown(config, all_results):
     markdown += f"- **Eval Batch Size**: {config.get('eval_batch_size', 'Not specified')}\n"
     markdown += f"- **Optimizer**: {config.get('optimizer', {}).get('type', 'Not specified')}\n"
     markdown += f"- **LR Scheduler Type**: {config.get('lr_scheduler_type', {}).get('type', 'Not specified')} with a patience of {config.get('patience_lr_scheduler', 'Not specified')} epochs and a factor of {config.get('factor_lr_scheduler', 'Not specified')}\n"
-    markdown += f"- **Freeze Encoder**: {'Yes' if config.get('freeze_encoder', True) else 'No'}\n"
-    markdown += f"- **Data Augmentation**: {'Yes' if config.get('data_augmentation', True) else 'No'}\n"
+    markdown += f"- **Freeze Encoder**: {'Yes' if config.get('freeze_encoder', False) else 'No'}\n"
+    markdown += f"- **Data Augmentation**: {'Yes' if config.get('data_augmentation', False) else 'No'}\n"
     return markdown
 
 

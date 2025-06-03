@@ -25,7 +25,7 @@ def parse_args() -> Namespace:
     parser.add_argument("-pcsv", "--path_csv_file", default=None, help="Path to the csv file")
 
     # Model arguments.
-    parser.add_argument("-psm", "--path_segmentation_model", default="models/SegForCoral-2025_05_12_76513-bs16_refine_with_sam", help="Path to semgentation model, currently only in local.")
+    parser.add_argument("-psm", "--path_segmentation_model", default="models/SegForCoralBig-2025_05_20_27648-bs16_refine_b2", help="Path to semgentation model, currently only in local.")
     parser.add_argument("-pgeo", "--path_geojson", type=list, default=["./config/emprise_lagoon.geojson"], help="Path to geojson to crop ortho inside area. We can use multiple geojson")
     
     parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0.5, help="Horizontal overlap between tiles.")
