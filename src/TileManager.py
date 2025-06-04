@@ -18,8 +18,8 @@ from .ConfigParser import ConfigParser
 from .PathManager import PathManager
 from .UAVManager import UAVManager
 
-from .utils.tiles_tools import convert_one_tiff_to_png
 from .utils.training_step import TrainingStep
+from .utils.tiles_tools import convert_one_tiff_to_png, align_annotation_to_ortho
 
 NUM_WORKERS = max(1, cpu_count() - 2)  # Use available CPU cores, leaving some free
 
@@ -318,47 +318,6 @@ class TileManager:
                     file_path.unlink()
         
         print(f"On {len(annotation_files)} files, we have deleted {cpt_error} files")
-    
-
-    def align_annotation_to_ortho(self, annotation_path: Path, ortho_path: Path) -> Path:
-
-        with rasterio.open(ortho_path) as ortho, rasterio.open(annotation_path) as anno:
-            if ortho.transform == anno.transform and ortho.crs == anno.crs and ortho.res == anno.res:
-                return annotation_path
-            
-            print("Resampling and aligning annotation to match orthophoto...")
-
-            dst_transform = ortho.transform
-            dst_crs = ortho.crs
-            dst_width = ortho.width
-            dst_height = ortho.height
-
-            aligned_data = np.empty((1, dst_height, dst_width), dtype=anno.dtypes[0])
-
-            rasterio.warp.reproject(
-                source=rasterio.band(anno, 1),
-                destination=aligned_data[0],
-                src_transform=anno.transform,
-                src_crs=anno.crs,
-                dst_transform=dst_transform,
-                dst_crs=dst_crs,
-                resampling=rasterio.warp.Resampling.nearest,
-            )
-
-            # Copy metadata
-            aligned_meta = ortho.meta.copy()
-            aligned_meta.update({
-                'count': 1,
-                'dtype': anno.dtypes[0]
-            })
-
-        # Save to temporary aligned file
-        aligned_path = Path(annotation_path.parent, f"{annotation_path.stem}_aligned.tif")
-        with rasterio.open(aligned_path, 'w', **aligned_meta) as dst:
-            dst.write(aligned_data)
-        
-        return aligned_path
-
 
     def process_tiles_refine_annotation(self, args: tuple) -> None:
         session_name, tile_x, tile_y, orthophoto_path, gdf_footprint, annotation_path = args
@@ -443,7 +402,7 @@ class TileManager:
             raise FileNotFoundError(f"Folder with refine predictions not found: {self.pm.uav_prediction_refine_raster_folder}")
 
         for raster_anno in self.pm.uav_prediction_refine_raster_folder.iterdir():
-
+            if '_aligned' in raster_anno.name: continue # Doesn't deal with aligned raster. 
             print(f"\n-- Working with {raster_anno.name} --")
 
             # Extract raster annotation place to get the correspondant uav orthophoto
@@ -451,7 +410,8 @@ class TileManager:
             session_name = ortho_name.replace("_ortho.tif", "")
             ortho_path, ortho_crs, height, width = uav_manager.get_ortho_information_from_ortho_name(ortho_name)
 
-            raster_anno = self.align_annotation_to_ortho(raster_anno, ortho_path)
+            raster_anno_aligned = Path(raster_anno.parent, f"{raster_anno.stem}_aligned{raster_anno.suffix}")
+            align_annotation_to_ortho(raster_anno, raster_anno_aligned, ortho_path)
 
             gdfs = []
             for path_geojson in self.cp.list_geojson_to_keep_inference:
@@ -463,7 +423,7 @@ class TileManager:
             combined_gdf = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True))
             geom_global = unary_union(combined_gdf.geometry)
 
-            tile_coords = [(session_name, x, y, ortho_path, geom_global, raster_anno) 
+            tile_coords = [(session_name, x, y, ortho_path, geom_global, raster_anno_aligned) 
                 for x in range(0, width - self.cp.tile_size + 1, self.cp.horizontal_step) 
                 for y in range(0, height - self.cp.tile_size + 1, self.cp.vertical_step)]
             

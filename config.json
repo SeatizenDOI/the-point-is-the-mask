@@ -55,7 +55,7 @@
             "resume_from": null
         },
         "refine_training": {
-            "model_path": "./models/SegForCoralBig-2025_05_20_27648-bs16_refine_b2",
+            "model_path": "./models/SegForCoral-b2-2025_06_03_30567-bs16_refine",
             "resume_from": null,
             "upload_on_huggingface": false
         }

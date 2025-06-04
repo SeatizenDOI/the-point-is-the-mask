@@ -1,4 +1,5 @@
 import traceback
+from pathlib import Path
 from datetime import datetime
 from argparse import Namespace, ArgumentParser
 
@@ -119,7 +120,7 @@ def main_seatizen(opt: Namespace) -> None:
             continue
         
         session_manager = SeatizenSessionManager(session_path)
-        raster_path = session_manager.get_orthophoto_path()
+        raster_path = session_manager.orthophoto_path
 
         print(f"\n\n--- {i+1}/{len(list_sessions)} - Working with {raster_path.stem}")        
         t_start = datetime.now()
@@ -129,21 +130,22 @@ def main_seatizen(opt: Namespace) -> None:
         path_manager.clean() if opt.clean else path_manager.create_path()
 
         try:
-            if opt.clean or path_manager.is_empty_cropped_folder():
-                tile_manager.split_ortho_into_tiles(path_manager)
+        #     if opt.clean or path_manager.is_empty_cropped_folder():
+        #         tile_manager.split_ortho_into_tiles(path_manager)
 
-            if opt.clean or path_manager.is_empty_cropped_img_folder():
-                tile_manager.convert_tiff_tiles_into_png(path_manager)
+        #     if opt.clean or path_manager.is_empty_cropped_img_folder():
+        #         tile_manager.convert_tiff_tiles_into_png(path_manager)
 
-            if opt.clean or path_manager.is_empty_predictions_tiff_folder():
-                model_manager.inference(path_manager)
+        #     if opt.clean or path_manager.is_empty_predictions_tiff_folder():
+        #         model_manager.inference(path_manager)
             
-            mosaic_manager = MosaicManager(path_manager, model_manager.get_id2label(), opt.max_pixels_by_slice_of_rasters)
-            mosaic_manager.build_raster()
+        #     mosaic_manager = MosaicManager(path_manager, model_manager.get_id2label(), opt.max_pixels_by_slice_of_rasters)
+        #     mosaic_manager.build_raster()
 
-            session_manager.move_prediction_raster(path_manager.final_merged_tiff_file, opt.path_segmentation_model.split("/")[-1])
+        #     session_manager.move_prediction_raster(path_manager.final_merged_tiff_file, opt.path_segmentation_model.split("/")[-1])
 
             # TODO add metadata about raster prediction
+            session_manager.create_resume_pdf(Path(opt.path_segmentation_model).name)
             
         except Exception as e:
             print(traceback.format_exc(), end="\n\n")

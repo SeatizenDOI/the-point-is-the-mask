@@ -1,9 +1,13 @@
+import tifffile
 import numpy as np
 from PIL import Image
 from pathlib import Path
-import tifffile
-from ..utils.underwater_correction import apply_filter, get_color_filter_matrix
 
+import rasterio
+import rasterio.warp
+from rasterio.windows import Window
+
+from ..utils.underwater_correction import apply_filter, get_color_filter_matrix
 
 def convert_one_tiff_to_png(args: tuple[Path, Path, bool]) -> None:
     """Convert an image or annotation from TIFF to PNG without using GDAL."""
@@ -34,3 +38,41 @@ def convert_one_tiff_to_png(args: tuple[Path, Path, bool]) -> None:
         raise ValueError(f"Unexpected image format: {raster_data.shape}")
 
     image.save(png_output_path)
+
+
+def align_annotation_to_ortho(input_annotation_path: Path, output_annotation_path: Path, ortho_path: Path) -> None:
+    """ Align annotation raster with orthophoto. """
+    with rasterio.open(ortho_path) as ortho, rasterio.open(input_annotation_path) as anno:
+        if ortho.transform == anno.transform and ortho.crs == anno.crs and ortho.res == anno.res:
+            return input_annotation_path
+        
+        print("Resampling and aligning annotation to match orthophoto...")
+
+        dst_transform = ortho.transform
+        dst_crs = ortho.crs
+        dst_width = ortho.width
+        dst_height = ortho.height
+
+        aligned_data = np.empty((1, dst_height, dst_width), dtype=anno.dtypes[0])
+
+        rasterio.warp.reproject(
+            source=rasterio.band(anno, 1),
+            destination=aligned_data[0],
+            src_transform=anno.transform,
+            src_crs=anno.crs,
+            dst_transform=dst_transform,
+            dst_crs=dst_crs,
+            resampling=rasterio.warp.Resampling.nearest,
+        )
+
+        # Copy metadata
+        aligned_meta = ortho.meta.copy()
+        aligned_meta.update({
+            'count': 1,
+            'dtype': anno.dtypes[0],
+            "driver": "GTiff"
+        })
+
+    # Save to temporary aligned file
+    with rasterio.open(output_annotation_path, 'w', compress="LZW", **aligned_meta) as dst:
+        dst.write(aligned_data)

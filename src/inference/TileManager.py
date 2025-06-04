@@ -1,5 +1,3 @@
-import json
-import pyproj
 import numpy as np
 from tqdm import tqdm
 import geopandas as gpd
@@ -11,8 +9,7 @@ import rasterio
 from rasterio.windows import Window
 from rasterio.transform import array_bounds
 
-from shapely.ops import transform
-from shapely.geometry import shape, box
+from shapely.geometry import box
 
 
 from ..utils.tiles_tools import convert_one_tiff_to_png
