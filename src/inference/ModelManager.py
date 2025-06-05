@@ -13,7 +13,7 @@ from transformers import AutoImageProcessor, SegformerForSemanticSegmentation
 from ..utils.sam_refiner import sam_refiner
 from .PathRasterManager import PathRasterManager
 from ..utils.segment_anything import sam_model_registry
-
+from ..utils.raster_color import NO_DATA_VALUE
 
 
 class ModelManager:
@@ -85,7 +85,7 @@ class ModelManager:
 
         # Finally we reapply our sand mask.
         output_mask[refined_mask[0] == 1] = self.label_sand_id
-        output_mask[output_mask == self.unwanted_value] = 0 # background value
+        output_mask[output_mask == self.unwanted_value] = NO_DATA_VALUE # background value
 
         return output_mask
 
@@ -110,18 +110,12 @@ class ModelManager:
     def inference(self, path_manager: PathRasterManager):
         print("*\t Perform inference.")
         session_images = sorted(list(path_manager.cropped_ortho_img_folder.iterdir()))
-        predicted_rasters = []
         
         for img_path in tqdm(session_images, desc="Performing inference on images"):
             mask = self.predict_mask(img_path)
             
             if self.opt.use_sam_refiner:
                 mask = self.predict_sam(np.copy(mask), img_path)
-            
-            predicted_rasters.append((mask, img_path))
-
-        # Convert predictions to GeoTIFF
-        for mask, img_path in tqdm(predicted_rasters, desc="Convert mask to tiff files"):
 
             corresponding_tiff = Path(path_manager.cropped_ortho_folder, f"{img_path.stem}.tif")
             if not corresponding_tiff.exists():
@@ -135,7 +129,7 @@ class ModelManager:
 
             output_tiff_path = Path(path_manager.predictions_tiff_folder, f"{img_path.stem}_prediction.tif")
             with rasterio.open(output_tiff_path, 'w', **meta) as dst:
-                mask = np.where(mask == 0, 255, mask)
+                mask = np.where(mask == NO_DATA_VALUE, 255, mask)
                 dst.write(mask, 1)    
 
 

@@ -5,3 +5,5 @@ RASTER_CLASS_COLOR = {
     4: (204, 0, 204, 127),
     5: (255, 255, 102, 127),
 }
+
+NO_DATA_VALUE = 0

@@ -9,11 +9,11 @@ from rasterio.transform import Affine
 from rasterio.windows import from_bounds
 
 from .PathRasterManager import PathRasterManager
-from ..utils.raster_color import RASTER_CLASS_COLOR
+from ..utils.raster_color import RASTER_CLASS_COLOR, NO_DATA_VALUE
 
 class MosaicManager:
     def __init__(self, path_manager: PathRasterManager, id2label: dict, max_pixels_by_slice: int = 800000000):
-        self.tmp_rasters_slice = []
+        self.tmp_rasters_slice: list[Path] = []
         self.path_manager = path_manager
         self.max_pixels_by_slice = max_pixels_by_slice
         self.id2label = id2label
@@ -39,8 +39,8 @@ class MosaicManager:
         origin_mosaic, origin_transform = merge(self.predictions_tiff_files, method="first")
         
         # Get the total size of the mosaic
-        height, width = origin_mosaic.shape[1], origin_mosaic.shape[2]
-        intermediate_tile_height = self.max_pixels_by_slice // width
+        nb_class, height, width = origin_mosaic.shape[0], origin_mosaic.shape[1], origin_mosaic.shape[2]
+        intermediate_tile_height = self.max_pixels_by_slice // (width * nb_class)
         nb_slice = math.ceil(height / intermediate_tile_height)
 
         print(f"The final raster size is {origin_mosaic.shape}. It will be cut by {nb_slice} slice of {intermediate_tile_height} pixels.")
@@ -66,7 +66,7 @@ class MosaicManager:
             tmp_path = Path(self.path_manager.merged_predictions_folder, f"{i}_{self.path_manager.final_merged_tiff_file.name}") 
 
             # Optimized Argmax Calculation
-            most_common_values = np.full(mosaic.shape[1:], 0, dtype=np.uint8)  # Default to 0 (NoData)
+            most_common_values = np.full(mosaic.shape[1:], NO_DATA_VALUE, dtype=np.uint8)  # Default to NO_DATA_VALUE
 
             count_buffer = np.zeros((self.num_classes, *mosaic.shape[1:]), dtype=np.uint16)  # Avoid large int types
 
@@ -118,7 +118,7 @@ class MosaicManager:
                 crs=self.crs,
                 transform=out_trans,
                 compress="LZW",
-                nodata=0,
+                nodata=NO_DATA_VALUE,
             ) as dst:
                 dst.write(most_common_values, 1)
 
@@ -152,7 +152,7 @@ class MosaicManager:
             crs=self.crs,
             transform=out_trans,
             compress="LZW",
-            nodata=0
+            nodata=NO_DATA_VALUE
         ) as dst:
             dst.write(mosaic[0, :], 1)
          
