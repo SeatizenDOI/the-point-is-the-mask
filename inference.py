@@ -26,12 +26,12 @@ def parse_args() -> Namespace:
     parser.add_argument("-pcsv", "--path_csv_file", default=None, help="Path to the csv file")
 
     # Model arguments.
-    parser.add_argument("-psm", "--path_segmentation_model", default="models/SegForCoralBig-2025_05_20_27648-bs16_refine_b2", help="Path to semgentation model, currently only in local.")
-    parser.add_argument("-pgeo", "--path_geojson", type=list, default=["./config/emprise_lagoon.geojson"], help="Path to geojson to crop ortho inside area. We can use multiple geojson")
+    parser.add_argument("-psm", "--path_segmentation_model", default="EPFL-ECEO/segformer-b2-finetuned-coralscapes-1024-1024", help="Path to semgentation model, currently only in local.")
+    parser.add_argument("-pgeo", "--path_geojson", type=list, default=[], help="Path to geojson to crop ortho inside area. We can use multiple geojson")
     
-    parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0.5, help="Horizontal overlap between tiles.")
-    parser.add_argument("-vo", "--vertical_overlap", type=float, default=0.5, help="Vertical overlap between tiles.")
-    parser.add_argument("-ts", "--tile_size", type=int, default=512, help="Split Orthophoto into tiles.")
+    parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0, help="Horizontal overlap between tiles.")
+    parser.add_argument("-vo", "--vertical_overlap", type=float, default=0, help="Vertical overlap between tiles.")
+    parser.add_argument("-ts", "--tile_size", type=int, default=1024, help="Split Orthophoto into tiles.")
     parser.add_argument("-ucc", "--underwater_color_correction", action="store_true", help="Perform color corection on water.")
 
     # SAM arguments.
@@ -45,7 +45,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--is_seatizen_session", action="store_true", help="Instead of working with raster, we work with seatizen session.")
     parser.add_argument("-is", "--index_start", default="0", help="Choose from which index to start")
     parser.add_argument("-c", "--clean", action="store_true", help="Delete all previous file")
-    parser.add_argument("--max_pixels_by_slice_of_rasters", type=int, default=800000000, help="Max pixels number into intermediate rasters to avoid RAM overload.")
+    parser.add_argument("--max_pixels_by_slice_of_rasters", type=int, default=300000000, help="Max pixels number into intermediate rasters to avoid RAM overload.")
 
     return parser.parse_args()
 

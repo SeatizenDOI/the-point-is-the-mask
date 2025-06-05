@@ -66,7 +66,7 @@ class MosaicManager:
             tmp_path = Path(self.path_manager.merged_predictions_folder, f"{i}_{self.path_manager.final_merged_tiff_file.name}") 
 
             # Optimized Argmax Calculation
-            most_common_values = np.full(mosaic.shape[1:], 0, dtype=np.uint8)  # Default to 0 (NoData)
+            most_common_values = np.full(mosaic.shape[1:], 255, dtype=np.uint8)  # Default to 0 (NoData)
 
             count_buffer = np.zeros((self.num_classes, *mosaic.shape[1:]), dtype=np.uint16)  # Avoid large int types
 
@@ -118,7 +118,7 @@ class MosaicManager:
                 crs=self.crs,
                 transform=out_trans,
                 compress="LZW",
-                nodata=0,
+                nodata=255,
             ) as dst:
                 dst.write(most_common_values, 1)
 
@@ -128,13 +128,17 @@ class MosaicManager:
     def create_final_rasters(self):
         print("*\t Create the final raster.")
 
+        id2label = {"1": "seagrass", "2": "trash", "3": "other coral dead", "4": "other coral bleached", "5": "sand", "6": "other coral alive", "7": "human", "8": "transect tools", "9": "fish", "10": "algae covered substrate", "11": "other animal", "12": "unknown hard substrate", "13": "background", "14": "dark", "15": "transect line", "16": "massive/meandering bleached", "17": "massive/meandering alive", "18": "rubble", "19": "branching bleached", "20": "branching dead", "21": "millepora", "22": "branching alive", "23": "massive/meandering dead", "24": "clam", "25": "acropora alive", "26": "sea cucumber", "27": "turbinaria", "28": "table acropora alive", "29": "sponge", "30": "anemone", "31": "pocillopora alive", "32": "table acropora dead", "33": "meandering bleached", "34": "stylophora alive", "35": "sea urchin", "36": "meandering alive", "37": "meandering dead", "38": "crown of thorn", "39": "dead clam"}
+        label2color = {"human": [255, 0, 0], "background": [29, 162, 216], "fish": [255, 255, 0], "sand": [194, 178, 128], "rubble": [161, 153, 128], "unknown hard substrate": [125, 125, 125], "algae covered substrate": [125, 163, 125], "dark": [31, 31, 31], "branching bleached": [252, 231, 240], "branching dead": [123, 50, 86], "branching alive": [226, 91, 157], "stylophora alive": [255, 111, 194], "pocillopora alive": [255, 146, 150], "acropora alive": [236, 128, 255], "table acropora alive": [189, 119, 255], "table acropora dead": [85, 53, 116], "millepora": [244, 150, 115], "turbinaria": [228, 255, 119], "other coral bleached": [250, 224, 225], "other coral dead": [114, 60, 61], "other coral alive": [224, 118, 119], "massive/meandering alive": [236, 150, 21], "massive/meandering dead": [134, 86, 18], "massive/meandering bleached": [255, 248, 228], "meandering alive": [230, 193, 0], "meandering dead": [119, 100, 14], "meandering bleached": [251, 243, 216], "transect line": [0, 255, 0], "transect tools": [8, 205, 12], "sea urchin": [0, 142, 255], "sea cucumber": [0, 231, 255], "anemone": [0, 255, 189], "sponge": [240, 80, 80], "clam": [189, 255, 234], "other animal": [0, 255, 255], "trash": [255, 0, 134], "seagrass": [125, 222, 125], "crown of thorn": [179, 245, 234], "dead clam": [89, 155, 134]}
+        id2color = {int(k): label2color.get(v, (0,0,0)) for k, v in id2label.items()}
+        
         if len(self.tmp_rasters_slice) == 1:
             Path.rename(self.tmp_rasters_slice[0], self.path_manager.final_merged_tiff_file)
 
             with rasterio.open(self.path_manager.final_merged_tiff_file, 'r+') as src:
                 
                 # Apply the colormap to band 1
-                src.write_colormap(1, RASTER_CLASS_COLOR)
+                src.write_colormap(1, id2color)
             return
         
         
@@ -152,11 +156,11 @@ class MosaicManager:
             crs=self.crs,
             transform=out_trans,
             compress="LZW",
-            nodata=0
+            nodata=255
         ) as dst:
             dst.write(mosaic[0, :], 1)
          
-            dst.write_colormap(1, RASTER_CLASS_COLOR)
+            dst.write_colormap(1, id2color)
 
         # Clean up temporary files
         for temp_tiff in self.tmp_rasters_slice:

@@ -110,7 +110,7 @@ class SeatizenSessionManager:
 
             # fig, ax = plt.subplots(figsize=figsize_paysage/2, subplot_kw=dict(aspect="equal"))
 
-            wedges, texts = ax_stats.pie(counts[1:], wedgeprops=dict(width=0.5), startangle=-60, colors=colors)
+            wedges, texts = ax_stats.pie(counts[1:], wedgeprops=dict(width=0.3), startangle=-60, colors=colors)
 
             bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
             kw = dict(arrowprops=dict(arrowstyle="-"),

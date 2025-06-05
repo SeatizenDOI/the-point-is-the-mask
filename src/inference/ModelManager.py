@@ -90,7 +90,7 @@ class ModelManager:
         return output_mask
 
 
-    def predict_mask(self, image_path: Path):
+    def predict_mask2(self, image_path: Path):
         size, inputs = self.preprocess_image(image_path)
         
         with torch.no_grad():
@@ -105,12 +105,19 @@ class ModelManager:
             )
         mask_resized_bilinear = mask_resized_bilinear.argmax(dim=1)[0].cpu().numpy().astype(np.uint8)
         return mask_resized_bilinear + 1 # Add one to get value between 1 and 5
+
+    def predict_mask(self, image_path: Path):
+        image = Image.open(image_path)
+        inputs = self.processor(image, return_tensors = "pt").to(self.device)
+        outputs = self.model(**inputs)
+        outputs = self.processor.post_process_semantic_segmentation(outputs, target_sizes=[(image.size[1], image.size[0])])
+        label_pred = outputs[0].cpu().numpy()
+        return label_pred
     
 
     def inference(self, path_manager: PathRasterManager):
         print("*\t Perform inference.")
         session_images = sorted(list(path_manager.cropped_ortho_img_folder.iterdir()))
-        predicted_rasters = []
         
         for img_path in tqdm(session_images, desc="Performing inference on images"):
             mask = self.predict_mask(img_path)
@@ -118,11 +125,6 @@ class ModelManager:
             if self.opt.use_sam_refiner:
                 mask = self.predict_sam(np.copy(mask), img_path)
             
-            predicted_rasters.append((mask, img_path))
-
-        # Convert predictions to GeoTIFF
-        for mask, img_path in tqdm(predicted_rasters, desc="Convert mask to tiff files"):
-
             corresponding_tiff = Path(path_manager.cropped_ortho_folder, f"{img_path.stem}.tif")
             if not corresponding_tiff.exists():
                 print(f"Warning: No matching TIFF file found for {img_path.name}, skipping...")
@@ -135,8 +137,9 @@ class ModelManager:
 
             output_tiff_path = Path(path_manager.predictions_tiff_folder, f"{img_path.stem}_prediction.tif")
             with rasterio.open(output_tiff_path, 'w', **meta) as dst:
-                mask = np.where(mask == 0, 255, mask)
+                # mask = np.where(mask == 0, 255, mask)
                 dst.write(mask, 1)    
+
 
 
     def get_id2label(self) -> dict:
