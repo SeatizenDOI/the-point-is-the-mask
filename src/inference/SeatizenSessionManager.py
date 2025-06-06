@@ -103,4 +103,4 @@ class SeatizenSessionManager:
             plot_distribution_and_legend(pdf, cmap, seg_resampled)
             
             ## -- Page 3 - ...
-            plot_patches(pdf, self.orthophoto_path, self.__new_prediction_raster_path, output_folder, self.footprint_buffered)
+            plot_patches(pdf, self.orthophoto_path, self.__new_prediction_raster_path, Path(output_folder, f"pdf_{self.session_path.name}"), self.footprint_buffered)

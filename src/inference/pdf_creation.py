@@ -160,7 +160,7 @@ def create_predictions_patch(ortho_path: Path, pred_path: Path, tmp_folder: Path
 
 def plot_patches(pdf: PdfPages, ortho_path: Path, pred_path: Path, output_folder: Path, ortho_footprint: Polygon) -> None:
     """ Plot patches. """
-    blend_prediction_folder = create_predictions_patch(ortho_path, pred_path, Path(output_folder, "pdf"), ortho_footprint)
+    blend_prediction_folder = create_predictions_patch(ortho_path, pred_path, output_folder, ortho_footprint)
 
     for i, file in enumerate(list(blend_prediction_folder.iterdir())):
         if i > 10: break
@@ -173,6 +173,8 @@ def plot_patches(pdf: PdfPages, ortho_path: Path, pred_path: Path, output_folder
         
         pdf.savefig(fig)
         plt.close(fig)
+    
+    shutil.rmtree(output_folder)
 
 
 def plot_legend(ax_legend: plt.Axes) -> None:
