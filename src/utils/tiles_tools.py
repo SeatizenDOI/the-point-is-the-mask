@@ -2,6 +2,7 @@ import tifffile
 import numpy as np
 from PIL import Image
 from pathlib import Path
+from shapely import Polygon, box
 
 import rasterio
 import rasterio.warp
@@ -76,3 +77,67 @@ def align_annotation_to_ortho(input_annotation_path: Path, output_annotation_pat
     # Save to temporary aligned file
     with rasterio.open(output_annotation_path, 'w', compress="LZW", **aligned_meta) as dst:
         dst.write(aligned_data)
+
+
+def extract_one_tile(args: tuple[int, int, int, Polygon, Path, Path, Path, Path]) -> None:
+    """ Extract one tile from orthophoto with corresponding annotation"""
+    
+    tile_x, tile_y, tile_size, ortho_footprint, ortho_path, \
+    anno_or_pred_path, tile_ortho_path, tile_pred_filepath   = args
+
+
+    with rasterio.open(ortho_path) as ortho:
+        
+        window = Window(tile_x, tile_y, tile_size, tile_size)
+
+        # Check if tile bounds are fully contained within the valid polygon
+        tile_bounds = box(*rasterio.windows.bounds(window, ortho.transform))
+        if not ortho_footprint.contains(tile_bounds):
+            return
+        
+        # Read raster data
+        tile_ortho = ortho.read(window=window)
+
+        # Apply threshold to filter out mostly black or white tiles
+        greyscale_tile = np.sum(tile_ortho, axis=0) / 3
+        
+        # Black threshold.
+        percentage_black_pixel = np.sum(greyscale_tile == 0) * 100 / tile_size**2
+        if percentage_black_pixel > 5:
+            return
+
+        # White threshold.
+        percentage_white_pixel = np.sum(greyscale_tile == 255) * 100 / tile_size**2
+        if percentage_white_pixel > 10:
+            return        
+
+        tile_transform = rasterio.windows.transform(window, ortho.transform)
+        tile_meta = ortho.meta.copy()
+        tile_meta.update({
+            "height": tile_size,
+            "width": tile_size,
+            "transform": tile_transform
+        })
+
+        # Open annotation raster inside the worker
+        with rasterio.open(anno_or_pred_path) as annotation:
+  
+            # Define tile transform
+            anno_transform = rasterio.windows.transform(window, annotation.transform)
+
+            tile_anno = annotation.read(window=window)
+
+            # Step 4: Generate the corresponding annotation for this tile
+            upsampled_annotation_meta = annotation.meta.copy()
+            upsampled_annotation_meta.update({
+                "driver": "GTiff",
+                "height": tile_size,
+                "width": tile_size,
+                "transform": anno_transform
+            })
+
+        with rasterio.open(tile_ortho_path, "w", **tile_meta) as dest:
+            dest.write(tile_ortho)
+        
+        with rasterio.open(tile_pred_filepath, "w", **upsampled_annotation_meta) as dest:
+            dest.write(tile_anno[0, :], 1)

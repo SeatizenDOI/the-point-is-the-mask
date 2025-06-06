@@ -9,7 +9,7 @@ from rasterio.transform import Affine
 from rasterio.windows import from_bounds
 
 from .PathRasterManager import PathRasterManager
-from ..utils.raster_color import RASTER_CLASS_COLOR, NO_DATA_VALUE
+from ..utils.raster_constants import RASTER_CLASS_ID2COLOR, NO_DATA_VALUE
 
 class MosaicManager:
     def __init__(self, path_manager: PathRasterManager, id2label: dict, max_pixels_by_slice: int = 800000000):
@@ -134,7 +134,7 @@ class MosaicManager:
             with rasterio.open(self.path_manager.final_merged_tiff_file, 'r+') as src:
                 
                 # Apply the colormap to band 1
-                src.write_colormap(1, RASTER_CLASS_COLOR)
+                src.write_colormap(1, RASTER_CLASS_ID2COLOR)
             return
         
         
@@ -156,7 +156,7 @@ class MosaicManager:
         ) as dst:
             dst.write(mosaic[0, :], 1)
          
-            dst.write_colormap(1, RASTER_CLASS_COLOR)
+            dst.write_colormap(1, RASTER_CLASS_ID2COLOR)
 
         # Clean up temporary files
         for temp_tiff in self.tmp_rasters_slice:

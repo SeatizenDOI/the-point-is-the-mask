@@ -13,7 +13,7 @@ from transformers import AutoImageProcessor, SegformerForSemanticSegmentation
 from ..utils.sam_refiner import sam_refiner
 from .PathRasterManager import PathRasterManager
 from ..utils.segment_anything import sam_model_registry
-from ..utils.raster_color import NO_DATA_VALUE
+from ..utils.raster_constants import NO_DATA_VALUE
 
 
 class ModelManager:

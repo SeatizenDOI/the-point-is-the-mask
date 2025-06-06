@@ -19,7 +19,7 @@ from .PathManager import PathManager
 from .UAVManager import UAVManager
 
 from .utils.training_step import TrainingStep
-from .utils.tiles_tools import convert_one_tiff_to_png, align_annotation_to_ortho
+from .utils.tiles_tools import convert_one_tiff_to_png, align_annotation_to_ortho, extract_one_tile
 
 NUM_WORKERS = max(1, cpu_count() - 2)  # Use available CPU cores, leaving some free
 
@@ -319,73 +319,6 @@ class TileManager:
         
         print(f"On {len(annotation_files)} files, we have deleted {cpt_error} files")
 
-    def process_tiles_refine_annotation(self, args: tuple) -> None:
-        session_name, tile_x, tile_y, orthophoto_path, gdf_footprint, annotation_path = args
-
-        # Open orthophoto inside the worker
-        with rasterio.open(orthophoto_path) as ortho:
-            # Define tile window with overlap applied
-            window = Window(tile_x, tile_y, self.cp.tile_size, self.cp.tile_size)
-            
-            # Define tile transform
-            tile_transform = rasterio.windows.transform(window, ortho.transform)
-
-            # Check if tile bounds are fully contained within the valid polygon
-            tile_bounds = box(*rasterio.windows.bounds(window, ortho.transform))
-            if not gdf_footprint.contains(tile_bounds):
-                return
-            
-            tile_ortho = ortho.read(window=window)
-
-            # Apply threshold to filter out mostly black or white tiles
-            greyscale_tile = np.sum(tile_ortho, axis=0) / 3
-            
-            # Black threshold.
-            percentage_black_pixel = np.sum(greyscale_tile == 0) * 100 / self.cp.tile_size**2
-            if percentage_black_pixel > 5: return
-
-            # White threshold.
-            percentage_white_pixel = np.sum(greyscale_tile == 255) * 100 / self.cp.tile_size**2
-            if percentage_white_pixel > 10: return
-            
-            tile_meta = ortho.meta.copy()
-            tile_meta.update({
-                "height": self.cp.tile_size,
-                "width": self.cp.tile_size,
-                "transform": tile_transform
-            })
-
-        # Open annotation raster inside the worker
-        with rasterio.open(annotation_path) as annotation:
-            # annotation_data = annotation.read(1, masked=True)
-            # Define tile transform
-            anno_transform = rasterio.windows.transform(window, annotation.transform)
-
-            tile_anno = annotation.read(window=window)
-
-            # Step 4: Generate the corresponding annotation for this tile
-            upsampled_annotation_meta = annotation.meta.copy()
-            upsampled_annotation_meta.update({
-                "driver": "GTiff",
-                "height": self.cp.tile_size,
-                "width": self.cp.tile_size,
-                "transform": anno_transform
-            })
-
-        # Save the tile
-        tile_filename = f"{session_name}_{tile_x}_{tile_y}.tif"
-        tile_output_path = Path(self.pm.refine_cropped_ortho_tif_folder, tile_filename)
-
-        with rasterio.open(tile_output_path, "w", **tile_meta) as dest:
-            dest.write(tile_ortho)
-
-        # Save the upsampled annotation file for this tile
-        annotation_filename = f"{session_name}_{tile_x}_{tile_y}.tif"
-        annotation_output_path = Path(self.pm.refine_annotation_tif_folder, annotation_filename)
-
-        with rasterio.open(annotation_output_path, "w", **upsampled_annotation_meta) as dest:
-            dest.write(tile_anno[0, :], 1)
-
 
     def create_tiles_and_annotations_refine(self, uav_manager: UAVManager) -> bool:
 
@@ -423,12 +356,22 @@ class TileManager:
             combined_gdf = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True))
             geom_global = unary_union(combined_gdf.geometry)
 
-            tile_coords = [(session_name, x, y, ortho_path, geom_global, raster_anno_aligned) 
+            tile_coords = [
+                (
+                    x,
+                    y,
+                    self.cp.tile_size,
+                    geom_global,
+                    ortho_path,
+                    raster_anno_aligned,
+                    Path(self.pm.refine_cropped_ortho_tif_folder, f"{session_name}_{x}_{y}.tif"),
+                    Path(self.pm.refine_annotation_tif_folder, f"{session_name}_{x}_{y}.tif")
+                ) 
                 for x in range(0, width - self.cp.tile_size + 1, self.cp.horizontal_step) 
                 for y in range(0, height - self.cp.tile_size + 1, self.cp.vertical_step)]
             
             # Process tiles in parallel
             with Pool(NUM_WORKERS) as pool:
-                list(tqdm(pool.imap_unordered(self.process_tiles_refine_annotation, tile_coords), total=len(tile_coords), desc="Processing Tiles"))
+                list(tqdm(pool.imap_unordered(extract_one_tile, tile_coords), total=len(tile_coords), desc="Processing Tiles"))
 
         return True

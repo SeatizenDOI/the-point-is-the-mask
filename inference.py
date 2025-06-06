@@ -26,7 +26,7 @@ def parse_args() -> Namespace:
     parser.add_argument("-pcsv", "--path_csv_file", default=None, help="Path to the csv file")
 
     # Model arguments.
-    parser.add_argument("-psm", "--path_segmentation_model", default="models/SegForCoralBig-2025_05_20_27648-bs16_refine_b2", help="Path to semgentation model, currently only in local.")
+    parser.add_argument("-psm", "--path_segmentation_model", default="models/SegForCoral-b2-2025_06_03_30567-bs16_refine", help="Path to semgentation model, currently only in local.")
     parser.add_argument("-pgeo", "--path_geojson", type=list, default=["./config/emprise_lagoon.geojson"], help="Path to geojson to crop ortho inside area. We can use multiple geojson")
     
     parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0.5, help="Horizontal overlap between tiles.")
@@ -122,7 +122,7 @@ def main_seatizen(opt: Namespace) -> None:
         session_manager = SeatizenSessionManager(session_path)
         raster_path = session_manager.orthophoto_path
 
-        print(f"\n\n--- {i+1}/{len(list_sessions)} - Working with {raster_path.stem}")        
+        print(f"\n\n--- {i+1}/{len(list_sessions)} - Working with {session_path.name}")        
         t_start = datetime.now()
         path_manager = PathRasterManager(opt.path_output, raster_path)
 
@@ -130,26 +130,25 @@ def main_seatizen(opt: Namespace) -> None:
         path_manager.clean() if opt.clean else path_manager.create_path()
 
         try:
-        #     if opt.clean or path_manager.is_empty_cropped_folder():
-        #         tile_manager.split_ortho_into_tiles(path_manager)
+            if opt.clean or path_manager.is_empty_cropped_folder():
+                tile_manager.split_ortho_into_tiles(path_manager)
 
-        #     if opt.clean or path_manager.is_empty_cropped_img_folder():
-        #         tile_manager.convert_tiff_tiles_into_png(path_manager)
+            if opt.clean or path_manager.is_empty_cropped_img_folder():
+                tile_manager.convert_tiff_tiles_into_png(path_manager)
 
-        #     if opt.clean or path_manager.is_empty_predictions_tiff_folder():
-        #         model_manager.inference(path_manager)
+            if opt.clean or path_manager.is_empty_predictions_tiff_folder():
+                model_manager.inference(path_manager)
             
-        #     mosaic_manager = MosaicManager(path_manager, model_manager.get_id2label(), opt.max_pixels_by_slice_of_rasters)
-        #     mosaic_manager.build_raster()
+            mosaic_manager = MosaicManager(path_manager, model_manager.get_id2label(), opt.max_pixels_by_slice_of_rasters)
+            mosaic_manager.build_raster()
 
-        #     session_manager.move_prediction_raster(path_manager.final_merged_tiff_file, opt.path_segmentation_model.split("/")[-1])
-
-            # TODO add metadata about raster prediction
-            session_manager.create_resume_pdf(Path(opt.path_segmentation_model).name)
+            session_manager.move_prediction_raster(path_manager.final_merged_tiff_file, opt.path_segmentation_model.split("/")[-1])
+            
+            session_manager.create_resume_pdf(Path(opt.path_segmentation_model).name, Path(path_manager.tmp_folder))
             
         except Exception as e:
             print(traceback.format_exc(), end="\n\n")
-            sessions_fail.append(raster_path.name)
+            sessions_fail.append(session_path.name)
         finally:
             if opt.clean:
                 path_manager.disk_optimize() 
