@@ -10,17 +10,18 @@ MERGED_PREDICTIONS = "final_predictions_raster"
 
 class PathRasterManager:
 
-    def __init__(self, output_folder: str, raster_path: Path):
+    def __init__(self, output_folder: str, raster_path: Path, raster_name: str | None = None):
 
+        self.raster_name = raster_path.stem if raster_name == None else raster_name
         self.raster_path = raster_path
         self.output_folder = Path(output_folder)
         self.tmp_folder = Path(output_folder, "tmp")
-        self.cropped_ortho_folder = Path(self.tmp_folder, CROPPED_ORTHO, raster_path.stem)
-        self.cropped_ortho_img_folder = Path(self.tmp_folder, CROPPED_ORTHO_IMG, raster_path.stem)
-        self.predictions_tiff_folder = Path(self.tmp_folder, PREDICTIONS_TIFF, raster_path.stem)
-        self.predictions_png_folder = Path(self.tmp_folder, PREDICTIONS_PNG, raster_path.stem)
+        self.cropped_ortho_folder = Path(self.tmp_folder, CROPPED_ORTHO, self.raster_name)
+        self.cropped_ortho_img_folder = Path(self.tmp_folder, CROPPED_ORTHO_IMG, self.raster_name)
+        self.predictions_tiff_folder = Path(self.tmp_folder, PREDICTIONS_TIFF, self.raster_name)
+        self.predictions_png_folder = Path(self.tmp_folder, PREDICTIONS_PNG, self.raster_name)
         self.merged_predictions_folder = Path(output_folder, MERGED_PREDICTIONS)
-        self.final_merged_tiff_file = Path(self.merged_predictions_folder, f"{raster_path.stem}_merged_predictions.tif")
+        self.final_merged_tiff_file = Path(self.merged_predictions_folder, f"{self.raster_name}_merged_predictions.tif")
 
     def is_empty_cropped_folder(self) -> bool:
         return len(list(self.cropped_ortho_folder.iterdir())) == 0

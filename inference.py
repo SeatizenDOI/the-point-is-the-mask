@@ -124,7 +124,7 @@ def main_seatizen(opt: Namespace) -> None:
 
         print(f"\n\n--- {i+1}/{len(list_sessions)} - Working with {session_path.name}")        
         t_start = datetime.now()
-        path_manager = PathRasterManager(opt.path_output, raster_path)
+        path_manager = PathRasterManager(opt.path_output, raster_path, session_path.name)
 
         # Clean if needed
         path_manager.clean() if opt.clean else path_manager.create_path()
