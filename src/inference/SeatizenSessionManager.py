@@ -9,7 +9,7 @@ from matplotlib.colors import ListedColormap
 from matplotlib.backends.backend_pdf import PdfPages
 
 from ..utils.raster_constants import RASTER_CLASS_ID2COLOR
-from .pdf_creation import create_fullmap_thumbnail_with_predictions, plot_patches, plot_distribution_and_legend, plot_first_page, FIGSIZE
+from .pdf_creation import create_fullmap_thumbnail_with_predictions, plot_patches, plot_distribution_and_legend, plot_first_page
 
 class SeatizenSessionManager:
 

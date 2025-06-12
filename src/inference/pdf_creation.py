@@ -198,8 +198,10 @@ def plot_distribution(ax_stats: plt.Axes, cmap: ListedColormap, seg_resampled: N
     colors = [cmap(int(label)) for label in list(RASTER_CLASS_ID2COLOR)]
     unique, counts = np.unique(seg_resampled, return_counts=True)
     labels = [RASTER_CLASS_ID2LABEL[i] for i in unique[1:]]
-    total = counts[1:].sum()
-    percentages = [100 * count / total for count in counts[1:]]
+    sorted_pairs = sorted(zip(counts[1:], labels, colors), key=lambda x: -x[0])
+    counts, labels, colors = [list(a) for a in zip(*sorted_pairs)]
+
+    percentages = [100 * count / sum(counts) for count in counts]
     
     ax_stats.set_title("Predicted Class Distribution", fontsize=20, fontweight="bold")
     ax_stats.axis('equal')
@@ -208,13 +210,15 @@ def plot_distribution(ax_stats: plt.Axes, cmap: ListedColormap, seg_resampled: N
 
     radius_pie = 0.8
     wedges, texts = ax_stats.pie(
-        counts[1:], wedgeprops=dict(width=0.3), radius=radius_pie, 
+        counts, wedgeprops=dict(width=0.3), radius=radius_pie, 
         startangle=60, colors=colors
     )
 
     kw = dict(arrowprops=dict(arrowstyle="-"), zorder=0, va="center")
 
     for i, p in enumerate(wedges):
+        if round(percentages[i], 2) == 0.0: continue
+
         ang = (p.theta2 - p.theta1)/2. + p.theta1
         y = np.sin(np.deg2rad(ang))
         x = np.cos(np.deg2rad(ang))
@@ -223,9 +227,9 @@ def plot_distribution(ax_stats: plt.Axes, cmap: ListedColormap, seg_resampled: N
         kw["arrowprops"].update({"connectionstyle": connectionstyle})
 
         label_text = f"{labels[i]} ({percentages[i]:.1f}%)"
-
-        arrow_start_radius = radius_pie * 0.9 
-        text_radius = radius_pie * 1.2 
+        
+        arrow_start_radius = radius_pie * 0.9
+        text_radius = radius_pie * (1.2 + i * 0.12)
 
         ax_stats.annotate(
             label_text,
@@ -267,7 +271,6 @@ def plot_first_page(pdf: PdfPages, session_name: str, model_name: str, ortho_rgb
     ax_overlay = fig.add_subplot(gs[1:, 0])
     ax_overlay.imshow(ortho_rgb)
     ax_overlay.imshow(seg_rgb, cmap=cmap, alpha=0.4, interpolation='none')
-    ax_overlay.set_title("Segmentation Overlay")
     ax_overlay.axis('off')
 
     pdf.savefig(fig)
