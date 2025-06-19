@@ -91,7 +91,7 @@ Exception: Python bindings of GDAL 3.10.2 require at least libgdal 3.10.2, but 3
 
 Use `sudo apt-get install libgdal-dev` to install libgdal.
 
-Then `sudo apt-get info libgdal-dev` to get the version.
+Then `sudo apt info libgdal-dev` to get the version.
 
 Mine is 3.8.4: 
 ```

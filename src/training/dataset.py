@@ -53,7 +53,7 @@ class DatasetManager:
 
         # Split into train, validation, and test sets
         image_paths_train, image_paths_validation, label_paths_train, label_paths_validation = train_test_split(
-            images, annotations, test_size=0.3, random_state=42
+            images, annotations, test_size=0.3, random_state=666
         )
 
         self.train_ds = create_dataset(image_paths_train, label_paths_train)

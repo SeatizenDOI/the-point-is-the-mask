@@ -18,22 +18,22 @@
     },
     "setup": {
         "list_asv_sessions": [
+            "20231204_REU-TROU-DEAU_ASV-1_03", "20231204_REU-TROU-DEAU_ASV-1_04", 
+            "20231123_REU-TROU-DEAU_ASV-1_04", "20240322_REU-TROU-DEAU_ASV-1_01",
+            "20240322_REU-TROU-DEAU_ASV-1_03", "20240322_REU-TROU-DEAU_ASV-1_02",
             "20250425_REU-ST-LEU_ASV-1_01",
-            "20250425_REU-ST-LEU_ASV-1_02",
             "20250425_REU-ST-LEU_ASV-1_03",
-            "20250425_REU-ST-LEU_ASV-2_01",
             "20250425_REU-ST-LEU_ASV-2_02",
-            "20250425_REU-ST-LEU_ASV-2_03",
             "20250519_REU-ST-LEU_ASV-1_01",
             "20250519_REU-ST-LEU_ASV-1_02",
             "20250519_REU-ST-LEU_ASV-2_01"
         ],
         "list_uav_sessions": [
-            "20231202_REU-TROU-DEAU_UAV-01_01", "20231208_REU-ST-LEU_UAV-01_03"
+            "20231202_REU-TROU-DEAU_UAV-01_01", "20250617_REU-ST-LEU_UAV-01_01", 
+            "20250519_REU-ST-LEU_UAV-01_01", "20250514_REU-ST-LEU_UAV-01_02"
         ],
         "drone_test_zone_polygon_path": [
-            ["config/drone_test_polygon_troudeau.geojson", "config/annotation_mask_troudeau.png"], 
-            ["config/drone_test_polygon_stleu.geojson", "config/annotation_mask_stleu.png"]
+            ["config/drone_test_polygon_troudeau.geojson", "config/annotation_mask_troudeau.png"]
         ],
         "list_labels_asv_predictions": ["Acropore_branched", "Acropore_tabular", "Sand", "No_acropore_massive", "No_acropore_sub_massive"],
         "tiles": {
@@ -57,11 +57,11 @@
             "early_stopping_patience": 10
         },
         "coarse_training": {
-            "model_path": null,
+            "model_path": "./models/SegForCoralBig-2025_05_14_25188-bs16_coarse_b2",
             "resume_from": null
         },
         "refine_training": {
-            "model_path": null,
+            "model_path": "./models/b2_bs8_test/SegForCoral-b2-2025_06_17_45247-bs8_refine_distilled",
             "resume_from": null,
             "upload_on_huggingface": false
         }

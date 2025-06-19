@@ -39,6 +39,10 @@ def main(opt: Namespace) -> None:
     pm = PathManager(cp.output_path)
     pm.setup(cp)
 
+    # Download uav orthophoto
+    uav_manager = UAVManager(cp, pm)
+
+    uav_manager.generate_csv_uav_sessions_for_inference()
     # Perform only evaluation.
     if opt.only_evaluation:
         perform_evalutation(pm, cp, cp.model_path_refine)
@@ -48,9 +52,6 @@ def main(opt: Namespace) -> None:
     asv_manager = ASVManager(cp, pm)
     asv_manager.create_coarse_annotations()
 
-    # Download uav orthophoto
-    uav_manager = UAVManager(cp, pm)
-
     # Coarse - Create tile and image and annotations
     tile_manager = TileManager(cp, pm)
     if tile_manager.create_tiles_and_annotations_coarse(uav_manager):
@@ -58,7 +59,6 @@ def main(opt: Namespace) -> None:
         tile_manager.convert_tiff_to_png_annotations(test_images_list, TrainingStep.COARSE)
         tile_manager.verify_if_annotation_tiles_contains_valid_values(asv_manager.get_classes_mapping(), TrainingStep.COARSE)
 
-    uav_manager.generate_csv_uav_sessions_for_inference()
 
     # First training.
     if cp.model_path_coarse == None:
@@ -77,7 +77,7 @@ def main(opt: Namespace) -> None:
             vertical_overlap=0.5, 
             tile_size=512, 
             underwater_color_correction=False, 
-            path_output='./data', 
+            path_output=pm.output_path, 
             index_start='0', 
             clean=True,
             use_sam_refiner=cp.with_sam_refiner, 
