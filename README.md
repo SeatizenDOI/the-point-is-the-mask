@@ -22,6 +22,8 @@
 
 </div>
 
+This repository is the official implementation of "The point is the mask: scaling coral reef segmentation with weak supervision" [ICCV-2025 Oral Presentation].
+
 Weakly Supervised Semantic Segmentation using UAV and ASV on coral reef. We use [SAMRefiner](https://github.com/linyq2117/SAMRefiner/) to perform refining during inference.
 
 
