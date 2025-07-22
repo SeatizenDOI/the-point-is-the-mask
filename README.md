@@ -155,10 +155,10 @@ Launch `python inference.py -efol -c -is_seatizen_session`
 
 
 
-# Optional information - use to generate tiles and serve with tms-server.
+## Optional information - use to generate tiles and serve with tms-server.
 
 
-## Create your segmentation dataset.
+### Create your segmentation dataset.
 
 Launch gdal with : `docker run --rm -it --user 1000:1000 -v .:/app ghcr.io/osgeo/gdal:latest`
 
@@ -171,6 +171,6 @@ Run `python merge_tiles.py -p /home/bioeos/Documents/project_hub/tms-server/bath
 After you get your global_tile folder you can follow the [tms-server README](https://github.com/SeatizenDOI/tms-server/blob/master/README.md)
 
 
-## Runner
+### Runner
 
 python main.py -efol -c && docker run --rm -it --user 1000:1000 -v .:/app ghcr.io/osgeo/gdal:latest sh -c "cd /app && ./apply_gdal.sh"
