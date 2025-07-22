@@ -36,7 +36,7 @@ Our method enables large-scale coral reef mapping from drone imagery with minima
 We demonstrate the efficacy of the approach, enabling large-area segmentation of coral morphotypes and illustrating its flexibility in integrating new classes.
 This study presents a scalable, cost-effective methodology for high-resolution reef monitoring, combining low-cost data collection, weakly supervised deep learning and multi-scale remote sensing.
 
-![LM_EM_alternate drawio]([https://github.com/ananthu-aniraj/masking_strategies_bias_removal/assets/50333505/462a5653-0e43-443f-836f-6fe6db09a723](https://github.com/SeatizenDOI/the-point-is-the-mask/blob/master/config/figure_schema.pdf))
+![LM_EM_alternate drawio](https://github.com/SeatizenDOI/the-point-is-the-mask/blob/master/config/figure_schema)
 
 
 ## Installation
