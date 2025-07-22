@@ -26,6 +26,15 @@ This repository is the official implementation of "The point is the mask: scalin
 
 We present a weakly supervised framework that uses underwater imagery to train aerial segmentation models for scalable coral reef monitoring with minimal annotation effort.
 
+## Abstract
+
+Monitoring coral reefs at large spatial scales remains an open challenge, essential for assessing ecosystem health and informing conservation efforts. 
+While drone-based aerial imagery offers broad spatial coverage, its limited resolution makes it difficult to reliably distinguish fine classes like coral morphotypes.
+At the same time, obtaining pixel-level annotations over large spatial extents is costly and labor-intensive, limiting the scalability of existing deep learning segmentation methods to aerial data.
+We present a multi-scale weakly supervised semantic segmentation framework that addresses this challenge by transferring fine-scale ecological information from underwater imagery to aerial data. 
+Our method enables large-scale coral reef mapping from drone imagery with minimal manual annotation, combining classification-based supervision, spatial interpolation and self-distillation techniques. 
+We demonstrate the efficacy of the approach, enabling large-area segmentation of coral morphotypes and illustrating its flexibility in integrating new classes.
+This study presents a scalable, cost-effective methodology for high-resolution reef monitoring, combining low-cost data collection, weakly supervised deep learning and multi-scale remote sensing.
 
 ## Installation
 
