@@ -18,7 +18,7 @@ class MosaicManager:
         self.max_pixels_by_slice = max_pixels_by_slice
         self.id2label = id2label
 
-        self.predictions_tiff_files = sorted(list(self.path_manager.predictions_tiff_folder.iterdir()))
+        self.predictions_tiff_files = sorted([f for f in list(self.path_manager.predictions_tiff_folder.iterdir()) if f.suffix.lower() in [".tif"]])
         
         with rasterio.open(self.predictions_tiff_files[0]) as src:
             self.crs = src.crs

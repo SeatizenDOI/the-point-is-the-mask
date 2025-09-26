@@ -21,16 +21,14 @@
             "20231204_REU-TROU-DEAU_ASV-1_03", "20231204_REU-TROU-DEAU_ASV-1_04", 
             "20231123_REU-TROU-DEAU_ASV-1_04", "20240322_REU-TROU-DEAU_ASV-1_01",
             "20240322_REU-TROU-DEAU_ASV-1_03", "20240322_REU-TROU-DEAU_ASV-1_02",
-            "20250425_REU-ST-LEU_ASV-1_01",
-            "20250425_REU-ST-LEU_ASV-1_03",
-            "20250425_REU-ST-LEU_ASV-2_02",
-            "20250519_REU-ST-LEU_ASV-1_01",
-            "20250519_REU-ST-LEU_ASV-1_02",
-            "20250519_REU-ST-LEU_ASV-2_01"
+            "20250425_REU-ST-LEU_ASV-1_01", "20250425_REU-ST-LEU_ASV-1_03",
+            "20250425_REU-ST-LEU_ASV-2_02", "20250519_REU-ST-LEU_ASV-1_01",
+            "20250519_REU-ST-LEU_ASV-1_02", "20250519_REU-ST-LEU_ASV-2_01",
+            "20250414_REU-TROU-DEAU_ASV-1_02", "20250414_REU-TROU-DEAU_ASV-2_01"
         ],
         "list_uav_sessions": [
             "20231202_REU-TROU-DEAU_UAV-01_01", "20250617_REU-ST-LEU_UAV-01_01", 
-            "20250519_REU-ST-LEU_UAV-01_01", "20250514_REU-ST-LEU_UAV-01_02"
+            "20250519_REU-ST-LEU_UAV-01_01", "20250514_REU-ST-LEU_UAV-01_02", "20250620_REU-TROU-DEAU_UAV-01_01"
         ],
         "drone_test_zone_polygon_path": [
             ["config/drone_test_polygon_troudeau.geojson", "config/annotation_mask_troudeau.png"]

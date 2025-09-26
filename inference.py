@@ -21,13 +21,13 @@ def parse_args() -> Namespace:
     arg_input.add_argument("-ecsv", "--enable_csv", action="store_true", help="Work from csv with root_folder,ortho_name and if it is seatizen session, root_folder,session_name")
 
     # Path of input.
-    parser.add_argument("-pfol", "--path_folder", default="/media/bioeos/E1/drone/serge_temp", help="Path to folder of session")
+    parser.add_argument("-pfol", "--path_folder", default="input", help="Path to folder of session")
     parser.add_argument("-pses", "--path_session", default="/media/bioeos/E/drone/serge_drone_session/20231202_REU-TROU-DEAU_UAV-01_01/PROCESSED_DATA/PHOTOGRAMMETRY/odm_orthophoto/odm_orthophoto.tif", help="Path to the session")
     parser.add_argument("-pcsv", "--path_csv_file", default=None, help="Path to the csv file")
 
     # Model arguments.
-    parser.add_argument("-psm", "--path_segmentation_model", default="./models/b2_bs8_test/SegForCoral-b2-2025_06_17_60968-bs8_refine", help="Path to semgentation model, currently only in local.")
-    parser.add_argument("-pgeo", "--path_geojson", type=list, default=["./config/boundary_ign_troudeau/boundary_ign_troudeau.geojson"], help="Path to geojson to crop ortho inside area. We can use multiple geojson")
+    parser.add_argument("-psm", "--path_segmentation_model", default="./models/SegForCoral-b2-2025_06_03_30567-bs16_refine", help="Path to semgentation model, currently only in local.")
+    parser.add_argument("-pgeo", "--path_geojson", type=list, default=["./config/boundary_ign_troudeau/boundary_ign_troudeau.geojson", "./config/boundary_ign_stleu/boundary_ign_stleu.geojson"], help="Path to geojson to crop ortho inside area. We can use multiple geojson")
     
     parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0.5, help="Horizontal overlap between tiles.")
     parser.add_argument("-vo", "--vertical_overlap", type=float, default=0.5, help="Vertical overlap between tiles.")

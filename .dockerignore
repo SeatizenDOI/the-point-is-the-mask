@@ -1,0 +1,13 @@
+output*
+segmentation_model
+__pycache__
+*.ipynb
+input*
+models*
+data
+.env
+generate_tiles
+.git
+.gitignore
+*.md
+LICENCE

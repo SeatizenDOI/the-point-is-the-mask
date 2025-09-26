@@ -41,8 +41,8 @@ def main(opt: Namespace) -> None:
 
     # Download uav orthophoto
     uav_manager = UAVManager(cp, pm)
-
     uav_manager.generate_csv_uav_sessions_for_inference()
+
     # Perform only evaluation.
     if opt.only_evaluation:
         perform_evalutation(pm, cp, cp.model_path_refine)
