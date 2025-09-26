@@ -22,8 +22,21 @@
 
 </div>
 
-Weakly Supervised Semantic Segmentation using UAV and ASV on coral reef. We use [SAMRefiner](https://github.com/linyq2117/SAMRefiner/) to perform refining during inference.
+This repository is the official implementation of "The point is the mask: scaling coral reef segmentation with weak supervision" [ICCV-2025 Oral Presentation].
 
+We present a weakly supervised framework that uses underwater imagery to train aerial segmentation models for scalable coral reef monitoring with minimal annotation effort.
+
+## Abstract
+
+Monitoring coral reefs at large spatial scales remains an open challenge, essential for assessing ecosystem health and informing conservation efforts. 
+While drone-based aerial imagery offers broad spatial coverage, its limited resolution makes it difficult to reliably distinguish fine classes like coral morphotypes.
+At the same time, obtaining pixel-level annotations over large spatial extents is costly and labor-intensive, limiting the scalability of existing deep learning segmentation methods to aerial data.
+We present a multi-scale weakly supervised semantic segmentation framework that addresses this challenge by transferring fine-scale ecological information from underwater imagery to aerial data. 
+Our method enables large-scale coral reef mapping from drone imagery with minimal manual annotation, combining classification-based supervision, spatial interpolation and self-distillation techniques. 
+We demonstrate the efficacy of the approach, enabling large-area segmentation of coral morphotypes and illustrating its flexibility in integrating new classes.
+This study presents a scalable, cost-effective methodology for high-resolution reef monitoring, combining low-cost data collection, weakly supervised deep learning and multi-scale remote sensing.
+
+![Annotation Example](https://github.com/SeatizenDOI/the-point-is-the-mask/blob/master/config/figure_schema-1.png?raw=true)
 
 ## Installation
 
@@ -142,10 +155,10 @@ Launch `python inference.py -efol -c -is_seatizen_session`
 
 
 
-# Optional information - use to generate tiles and serve with tms-server.
+## Optional information - use to generate tiles and serve with tms-server.
 
 
-## Create your segmentation dataset.
+### Create your segmentation dataset.
 
 Launch gdal with : `docker run --rm -it --user 1000:1000 -v .:/app ghcr.io/osgeo/gdal:latest`
 
@@ -158,6 +171,6 @@ Run `python merge_tiles.py -p /home/bioeos/Documents/project_hub/tms-server/bath
 After you get your global_tile folder you can follow the [tms-server README](https://github.com/SeatizenDOI/tms-server/blob/master/README.md)
 
 
-## Runner
+### Runner
 
 python main.py -efol -c && docker run --rm -it --user 1000:1000 -v .:/app ghcr.io/osgeo/gdal:latest sh -c "cd /app && ./apply_gdal.sh"
