@@ -31,7 +31,7 @@ def parse_args() -> Namespace:
     
     parser.add_argument("-ho", "--horizontal_overlap", type=float, default=0.5, help="Horizontal overlap between tiles.")
     parser.add_argument("-vo", "--vertical_overlap", type=float, default=0.5, help="Vertical overlap between tiles.")
-    parser.add_argument("-ts", "--tile_size", type=int, default=512, help="Split Orthophoto into tiles.")
+    parser.add_argument("-ts", "--tile_size", type=int, default=2048, help="Split Orthophoto into tiles.")
     parser.add_argument("-ucc", "--underwater_color_correction", action="store_true", help="Perform color corection on water.")
 
     # SAM arguments.
@@ -39,7 +39,7 @@ def parse_args() -> Namespace:
     parser.add_argument("-psam", "--path_sam_model", default="./models/sam_base_model/sam_vit_h_4b8939.pth", help="Path to SAM refiner model.")
 
     # Output.
-    parser.add_argument("-po" , "--path_output", default="./output2", help="Path of output")
+    parser.add_argument("-po" , "--path_output", default="./output", help="Path of output")
 
     # Optional arguments.
     parser.add_argument("--is_seatizen_session", action="store_true", help="Instead of working with raster, we work with seatizen session.")
