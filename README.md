@@ -153,8 +153,6 @@ Launch `python inference.py -h`
 Launch `python inference.py -efol -c -is_seatizen_session`
 
 
-
-
 ## Optional information - use to generate tiles and serve with tms-server.
 
 
